@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pawtopia 專屬於你的小奶狗</title>
+<title>Pawtopia 養狗遊戲（修正版）</title>
 <style>
 body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: #f6f3ff; margin: 0; padding: 20px; }
 .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 6px 18px rgba(20,20,40,0.06);} 
@@ -18,11 +18,19 @@ button { padding: 8px 16px; margin-right: 8px; border: none; border-radius: 8px;
 .small { font-size:0.9rem; color:#555; }
 .levelbox { background:#fef3c7; padding:6px 10px; border-radius:8px; }
 .xpbox { background:#eef2ff; padding:6px 10px; border-radius:8px; }
+/* 新的一天動畫 */
+.day-transition { 
+  animation: dayFlash 0.8s ease;
+}
+@keyframes dayFlash {
+  0% { background-color: #fffabf; }
+  100% { background-color: transparent; }
+}
 </style>
 </head>
 <body>
 <div class="container">
-  <h1>Pawtopia 專屬於你的小奶狗</h1>
+  <h1>Pawtopia（HTML 版 • 修正版）</h1>
 
   <!-- 取名區 -->
   <div id="namingArea">
@@ -31,7 +39,7 @@ button { padding: 8px 16px; margin-right: 8px; border: none; border-radius: 8px;
 
     <h3>選擇你的狗狗外觀</h3>
     <div style="display:flex; gap:12px; margin:10px 0;">
-      <img src="dog.png" data-dog="dog.png" class="dogChoice" style="width:80px; height:80px; border-radius:8px; cursor:pointer; border:3px solid transparent;">
+      <img src="https://place-puppy.com/200x200" data-dog="https://place-puppy.com/200x200" class="dogChoice" style="width:80px; height:80px; border-radius:8px; cursor:pointer; border:3px solid transparent;">
       <img src="https://place-puppy.com/201x201" data-dog="https://place-puppy.com/201x201" class="dogChoice" style="width:80px; height:80px; border-radius:8px; cursor:pointer; border:3px solid transparent;">
       <img src="https://place-puppy.com/202x202" data-dog="https://place-puppy.com/202x202" class="dogChoice" style="width:80px; height:80px; border-radius:8px; cursor:pointer; border:3px solid transparent;">
     </div>
@@ -222,10 +230,16 @@ function checkMissionCompletion(){
 
 // --- Day handling ---
 function startNewDay(){
+  // 新一天動畫效果
+  const gameArea = document.getElementById('gameArea');
+  gameArea.classList.add('day-transition');
+  setTimeout(()=> gameArea.classList.remove('day-transition'), 800);
   day++;
   actionCount = 0;
   // Optionally, small natural recovery each new day
-  dog.happiness = Math.min(100, dog.happiness + 5);
+  // 維持前一天的快樂值，不做自動調整
+  // 新的一天快樂歸零
+  dog.happiness = 0;
   dog.energy = Math.min(100, dog.energy + 10);
   dog.hunger = Math.min(100, dog.hunger + 5);
   log(`🌅 第 ${day} 天開始，任務與日常狀態已更新。`);
