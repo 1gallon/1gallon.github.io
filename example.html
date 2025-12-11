@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pawtopia 養狗遊戲（修正版）</title>
+<title>Pawtopia 專屬於你的小奶狗</title>
 <style>
 body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: #f6f3ff; margin: 0; padding: 20px; }
 .container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 6px 18px rgba(20,20,40,0.06);} 
@@ -22,12 +22,20 @@ button { padding: 8px 16px; margin-right: 8px; border: none; border-radius: 8px;
 </head>
 <body>
 <div class="container">
-  <h1>Pawtopia（HTML 版 • 修正版）</h1>
+  <h1>Pawtopia 專屬於你的小奶狗</h1>
 
   <!-- 取名區 -->
   <div id="namingArea">
     <h2>替你的狗狗取名字</h2>
     <input id="dogNameInput" placeholder="輸入名字" />
+
+    <h3>選擇你的狗狗外觀</h3>
+    <div style="display:flex; gap:12px; margin:10px 0;">
+      <img src="dog.png" data-dog="dog.png" class="dogChoice" style="width:80px; height:80px; border-radius:8px; cursor:pointer; border:3px solid transparent;">
+      <img src="https://place-puppy.com/201x201" data-dog="https://place-puppy.com/201x201" class="dogChoice" style="width:80px; height:80px; border-radius:8px; cursor:pointer; border:3px solid transparent;">
+      <img src="https://place-puppy.com/202x202" data-dog="https://place-puppy.com/202x202" class="dogChoice" style="width:80px; height:80px; border-radius:8px; cursor:pointer; border:3px solid transparent;">
+    </div>
+
     <button id="startBtn">開始遊戲</button>
   </div>
 
@@ -40,14 +48,14 @@ button { padding: 8px 16px; margin-right: 8px; border: none; border-radius: 8px;
       <div class="small" id="dayDisplay">第 1 天</div>
     </div>
 
-    <img src="https://place-puppy.com/200x200" alt="dog" style="border-radius:12px; margin-top:12px;" />
+    <img id="mainDogImg" src="https://place-puppy.com/200x200" alt="dog" style="border-radius:12px; margin-top:12px;" />
 
     <!-- 狀態列 -->
     <div class="stats">
       <div>快樂：<span id="happyValue">70</span>%
         <div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div>
       </div>
-      <div>飢餓：<span id="hungerValue">30</span>%
+      <div>飽足感：<span id="hungerValue">30</span>%
         <div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div>
       </div>
       <div>能量：<span id="energyValue">60</span>%
@@ -134,7 +142,7 @@ function updateMetaUI(){
 
 function checkWarnings(){
   if (dog.happiness <= 0) alert('⚠️ 狗狗太不開心了！');
-  if (dog.hunger >= 100) alert('⚠️ 狗狗太餓了！');
+  if (dog.hunger <= 0) alert('⚠️ 狗狗太餓了！');
   if (dog.energy <= 0) alert('⚠️ 狗狗沒有力氣了！');
 }
 
@@ -164,7 +172,7 @@ function afterAction(){
 
 function feed(){
   // feeding reduces hunger, increases happiness
-  dog.hunger = Math.max(0, dog.hunger - 20);
+  dog.hunger = Math.min(100, dog.hunger + 20);
   dog.happiness = Math.min(100, dog.happiness + 10);
   mission.feedDone++;
   log('你餵了狗狗。');
@@ -184,7 +192,7 @@ function play(){
 
 function sleepDog(){
   dog.energy = Math.min(100, dog.energy + 40);
-  dog.hunger = Math.min(100, dog.hunger + 10);
+  dog.hunger = Math.max(0, dog.hunger - 10);
   log('狗狗睡了一覺。');
   afterAction();
 }
@@ -227,6 +235,17 @@ function startNewDay(){
 }
 
 // --- Initialization & bindings ---
+
+// dog image selection
+let selectedDogImg = "https://place-puppy.com/200x200";
+
+Array.from(document.querySelectorAll('.dogChoice')).forEach(img => {
+  img.addEventListener('click', () => {
+    selectedDogImg = img.dataset.dog;
+    document.querySelectorAll('.dogChoice').forEach(i => i.style.border = "3px solid transparent");
+    img.style.border = "3px solid #2563eb";
+  });
+});
 el('startBtn').addEventListener('click', () => {
   const name = el('dogNameInput').value.trim();
   if (!name) { alert('請輸入名字！'); return; }
