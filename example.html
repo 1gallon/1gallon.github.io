@@ -1,11 +1,146 @@
 <!DOCTYPE html>
-<html>
-  <head>
-    <title>你好</title>
-    <link rel="icon" href="dog.png">
-  </head>
-  <body>
-    good morning
-    i am fine,thank you,and you?
-  </body>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pawtopia 養狗遊戲</title>
+<style>
+body { font-family: sans-serif; background: #f6f3ff; margin: 0; padding: 20px; }
+.container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; }
+.stats, .actions, .mission, .log { margin-top: 20px; }
+.bar { height: 14px; background: #ddd; border-radius: 8px; overflow: hidden; margin-top: 4px; }
+.fill { height: 100%; background: #4caf50; }
+button { padding: 8px 16px; margin-right: 8px; border: none; border-radius: 8px; cursor: pointer; }
+.mission li { background: #f3f3f3; padding: 10px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; }
+.log ul { max-height: 160px; overflow-y: auto; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Pawtopia（HTML 版）</h1>
+
+<!-- 取名區 -->
+<div id="namingArea">
+<h2>替你的狗狗取名字</h2>
+<input id="dogNameInput" placeholder="輸入名字" />
+<button onclick="startGame()">開始遊戲</button>
+</div>
+
+<!-- 主遊戲區 -->
+<div id="gameArea" style="display:none;">
+<h2 id="dogTitle"></h2>
+<img src="https://place-puppy.com/200x200" style="border-radius:12px;" />
+
+<!-- 狀態列 -->
+<div class="stats">
+<div>快樂：<span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div></div>
+<div>飢餓：<span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div></div>
+<div>能量：<span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill" style="width:60%"></div></div></div>
+</div>
+
+<!-- 按鈕 -->
+<div class="actions">
+<button onclick="feed()">餵食</button>
+<button onclick="play()">玩耍</button>
+<button onclick="sleepDog()">睡覺</button>
+</div>
+
+<!-- 任務 -->
+<div class="mission">
+<h3>今日任務</h3>
+<ul>
+<li>餵食 1 次 <span id="missionFeed">未完成</span></li>
+<li>玩耍 2 次 <span id="missionPlay">未完成</span></li>
+</ul>
+</div>
+
+<!-- 日誌 -->
+<div class="log">
+<h3>日誌</h3>
+<ul id="logList"></ul>
+</div>
+</div>
+</div>
+
+<script>
+let dog = {
+    name: '',
+    happiness: 70,
+    hunger: 30,
+    energy: 60,
+};
+
+let feedCount = 0;
+let playCount = 0;
+
+function startGame() {
+    const name = document.getElementById('dogNameInput').value.trim();
+    if (!name) {
+        alert("請輸入名字！");
+        return;
+    }
+    dog.name = name;
+
+    document.getElementById("dogTitle").textContent = name;
+    document.getElementById("namingArea").style.display = "none";
+    document.getElementById("gameArea").style.display = "block";
+
+    log(`${name} 準備開始一天！`);
+}
+
+function updateUI() {
+    document.getElementById("happyValue").textContent = dog.happiness;
+    document.getElementById("hungerValue").textContent = dog.hunger;
+    document.getElementById("energyValue").textContent = dog.energy;
+
+    document.getElementById("happyBar").style.width = dog.happiness + "%";
+    document.getElementById("hungerBar").style.width = dog.hunger + "%";
+    document.getElementById("energyBar").style.width = dog.energy + "%";
+
+    checkWarnings();
+    updateMissions();
+}
+
+function log(text) {
+    const li = document.createElement("li");
+    li.textContent = text;
+    document.getElementById("logList").appendChild(li);
+}
+
+function checkWarnings() {
+    if (dog.happiness <= 0) alert("⚠️ 狗狗太不開心了！");
+    if (dog.hunger >= 100) alert("⚠️ 狗狗太餓了！");
+    if (dog.energy <= 0) alert("⚠️ 狗狗沒有力氣了！");
+}
+
+function feed() {
+    dog.hunger = Math.max(0, dog.hunger - 20);
+    dog.happiness = Math.min(100, dog.happiness + 10);
+    feedCount++;
+    log("你餵了狗狗！");
+    updateUI();
+}
+
+function play() {
+    dog.happiness = Math.min(100, dog.happiness + 15);
+    dog.energy = Math.max(0, dog.energy - 20);
+    playCount++;
+    log("你和狗狗玩耍！");
+    updateUI();
+}
+
+function sleepDog() {
+    dog.energy = Math.min(100, dog.energy + 40);
+    dog.hunger = Math.min(100, dog.hunger + 10);
+    log("狗狗睡了一覺。");
+    updateUI();
+}
+
+function updateMissions() {
+    if (feedCount >= 1) document.getElementById("missionFeed").textContent = "完成 ✔";
+    if (playCount >= 2) document.getElementById("missionPlay").textContent = "完成 ✔";
+}
+</script>
+
+</body>
 </html>
