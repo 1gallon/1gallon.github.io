@@ -3,144 +3,251 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pawtopia 養狗遊戲</title>
+<title>Pawtopia 養狗遊戲（修正版）</title>
 <style>
-body { font-family: sans-serif; background: #f6f3ff; margin: 0; padding: 20px; }
-.container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; }
+body { font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial; background: #f6f3ff; margin: 0; padding: 20px; }
+.container { max-width: 900px; margin: auto; background: white; padding: 20px; border-radius: 12px; box-shadow: 0 6px 18px rgba(20,20,40,0.06);} 
 .stats, .actions, .mission, .log { margin-top: 20px; }
-.bar { height: 14px; background: #ddd; border-radius: 8px; overflow: hidden; margin-top: 4px; }
-.fill { height: 100%; background: #4caf50; }
-button { padding: 8px 16px; margin-right: 8px; border: none; border-radius: 8px; cursor: pointer; }
+.bar { height: 14px; background: #eee; border-radius: 8px; overflow: hidden; margin-top: 4px; }
+.fill { height: 100%; background: #4caf50; transition: width 300ms ease; }
+button { padding: 8px 16px; margin-right: 8px; border: none; border-radius: 8px; cursor: pointer; background:#2563eb; color:white; }
+.secondary { background:#10b981; }
 .mission li { background: #f3f3f3; padding: 10px; border-radius: 8px; margin-bottom: 6px; display: flex; justify-content: space-between; }
-.log ul { max-height: 160px; overflow-y: auto; }
+.log ul { max-height: 160px; overflow-y: auto; padding-left: 16px; }
+.meta { display:flex; gap:12px; align-items:center; }
+.small { font-size:0.9rem; color:#555; }
+.levelbox { background:#fef3c7; padding:6px 10px; border-radius:8px; }
+.xpbox { background:#eef2ff; padding:6px 10px; border-radius:8px; }
 </style>
 </head>
 <body>
 <div class="container">
-<h1>Pawtopia（HTML 版）</h1>
+  <h1>Pawtopia（HTML 版 • 修正版）</h1>
 
-<!-- 取名區 -->
-<div id="namingArea">
-<h2>替你的狗狗取名字</h2>
-<input id="dogNameInput" placeholder="輸入名字" />
-<button onclick="startGame()">開始遊戲</button>
-</div>
+  <!-- 取名區 -->
+  <div id="namingArea">
+    <h2>替你的狗狗取名字</h2>
+    <input id="dogNameInput" placeholder="輸入名字" />
+    <button id="startBtn">開始遊戲</button>
+  </div>
 
-<!-- 主遊戲區 -->
-<div id="gameArea" style="display:none;">
-<h2 id="dogTitle"></h2>
-<img src="https://place-puppy.com/200x200" style="border-radius:12px;" />
+  <!-- 主遊戲區 -->
+  <div id="gameArea" style="display:none;">
+    <div class="meta">
+      <h2 id="dogTitle"></h2>
+      <div class="levelbox">等級：<span id="dogLevel">1</span></div>
+      <div class="xpbox">XP：<span id="xpDisplay">0 / 3</span></div>
+      <div class="small" id="dayDisplay">第 1 天</div>
+    </div>
 
-<!-- 狀態列 -->
-<div class="stats">
-<div>快樂：<span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div></div>
-<div>飢餓：<span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div></div>
-<div>能量：<span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill" style="width:60%"></div></div></div>
-</div>
+    <img src="https://place-puppy.com/200x200" alt="dog" style="border-radius:12px; margin-top:12px;" />
 
-<!-- 按鈕 -->
-<div class="actions">
-<button onclick="feed()">餵食</button>
-<button onclick="play()">玩耍</button>
-<button onclick="sleepDog()">睡覺</button>
-</div>
+    <!-- 狀態列 -->
+    <div class="stats">
+      <div>快樂：<span id="happyValue">70</span>%
+        <div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div>
+      </div>
+      <div>飢餓：<span id="hungerValue">30</span>%
+        <div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div>
+      </div>
+      <div>能量：<span id="energyValue">60</span>%
+        <div class="bar"><div id="energyBar" class="fill" style="width:60%"></div></div>
+      </div>
+    </div>
 
-<!-- 任務 -->
-<div class="mission">
-<h3>今日任務</h3>
-<ul>
-<li>餵食 1 次 <span id="missionFeed">未完成</span></li>
-<li>玩耍 2 次 <span id="missionPlay">未完成</span></li>
-</ul>
-</div>
+    <!-- 按鈕 -->
+    <div class="actions">
+      <button id="feedBtn">餵食</button>
+      <button id="playBtn">玩耍</button>
+      <button id="sleepBtn">睡覺</button>
+    </div>
 
-<!-- 日誌 -->
-<div class="log">
-<h3>日誌</h3>
-<ul id="logList"></ul>
-</div>
-</div>
+    <!-- 任務 -->
+    <div class="mission">
+      <h3>今日任務</h3>
+      <ul>
+        <li>餵食 <span id="missionFeed">0/1</span></li>
+        <li>玩耍 <span id="missionPlay">0/2</span></li>
+      </ul>
+      <p>已完成任務次數（用於升級）：<span id="missionTotal">0</span></p>
+    </div>
+
+    <!-- 日誌 -->
+    <div class="log">
+      <h3>日誌</h3>
+      <ul id="logList"></ul>
+    </div>
+  </div>
 </div>
 
 <script>
-let dog = {
-    name: '',
-    happiness: 70,
-    hunger: 30,
-    energy: 60,
+// --- Game state ---
+const dog = {
+  name: '',
+  happiness: 70,
+  hunger: 30,
+  energy: 60,
+  level: 1
+};
+let xp = 0;
+const xpToLevelUp = 3; // 3 XP to level up
+const xpPerMission = 1; // 1 mission = +1 XP
+
+let day = 1;
+let actionCount = 0;
+
+// Today's mission targets (randomized each day)
+let mission = {
+  feedTarget: 1, // we'll display as n / target
+  playTarget: 2,
+  feedDone: 0,
+  playDone: 0,
+  completedCount: 0 // how many times player completed full mission (for XP awarding shown in missionTotal)
 };
 
-let feedCount = 0;
-let playCount = 0;
+// --- Helpers ---
+function el(id){ return document.getElementById(id); }
+function log(msg){ const ul = el('logList'); const li = document.createElement('li'); li.textContent = msg; ul.prepend(li); }
 
-function startGame() {
-    const name = document.getElementById('dogNameInput').value.trim();
-    if (!name) {
-        alert("請輸入名字！");
-        return;
+// --- UI updates ---
+function updateStatsUI(){
+  el('happyValue').textContent = dog.happiness;
+  el('hungerValue').textContent = dog.hunger;
+  el('energyValue').textContent = dog.energy;
+  el('happyBar').style.width = dog.happiness + '%';
+  el('hungerBar').style.width = dog.hunger + '%';
+  el('energyBar').style.width = dog.energy + '%';
+}
+
+function updateMissionUI(){
+  el('missionFeed').textContent = `${mission.feedDone}/${mission.feedTarget}`;
+  // mission requires 2 plays to count, but we show current/target as 0/2 by default
+  el('missionPlay').textContent = `${mission.playDone}/${mission.playTarget}`;
+  el('missionTotal').textContent = mission.completedCount;
+}
+
+function updateMetaUI(){
+  el('dogLevel').textContent = dog.level;
+  el('xpDisplay').textContent = `${xp} / ${xpToLevelUp}`;
+  el('dayDisplay').textContent = `第 ${day} 天`;
+}
+
+function checkWarnings(){
+  if (dog.happiness <= 0) alert('⚠️ 狗狗太不開心了！');
+  if (dog.hunger >= 100) alert('⚠️ 狗狗太餓了！');
+  if (dog.energy <= 0) alert('⚠️ 狗狗沒有力氣了！');
+}
+
+// --- Mission generation ---
+function generateNewMission(){
+  // total mission count = 5, split randomly between feed and play
+  const feed = Math.floor(Math.random() * 4) + 1; // 1~4
+  const play = 5 - feed; // ensures total = 5
+  mission.feedTarget = feed;
+  mission.playTarget = play;
+  mission.feedDone = 0;
+  mission.playDone = 0;
+  updateMissionUI();
+}
+
+// --- Actions ---
+function afterAction(){
+  actionCount++;
+  updateStatsUI();
+  updateMissionUI();
+  updateMetaUI();
+  checkWarnings();
+  if (actionCount >= 10) {
+    startNewDay();
+  }
+}
+
+function feed(){
+  // feeding reduces hunger, increases happiness
+  dog.hunger = Math.max(0, dog.hunger - 20);
+  dog.happiness = Math.min(100, dog.happiness + 10);
+  mission.feedDone++;
+  log('你餵了狗狗。');
+  checkMissionCompletion();
+  afterAction();
+}
+
+function play(){
+  // playing increases happiness but reduces energy
+  dog.happiness = Math.min(100, dog.happiness + 15);
+  dog.energy = Math.max(0, dog.energy - 20);
+  mission.playDone++;
+  log('你和狗狗玩耍！');
+  checkMissionCompletion();
+  afterAction();
+}
+
+function sleepDog(){
+  dog.energy = Math.min(100, dog.energy + 40);
+  dog.hunger = Math.min(100, dog.hunger + 10);
+  log('狗狗睡了一覺。');
+  afterAction();
+}
+
+// --- Mission completion & XP ---
+function checkMissionCompletion(){
+  // The user requested: 1 "mission" equals feeding >=1 AND playing >=2.
+  // But daily missions are randomized; we'll award XP when player's feedDone >=1 AND playDone >=2.
+  if (mission.feedDone >= mission.feedTarget && mission.playDone >= mission.playTarget) {
+    // award XP once per completion cycle, then generate a new mission
+    mission.completedCount++;
+    xp += xpPerMission;
+    log(`🎉 任務條件達成！獲得 ${xpPerMission} XP（目前 XP: ${xp}/${xpToLevelUp}）`);
+
+    // level up when XP reaches threshold
+    if (xp >= xpToLevelUp) {
+      xp = 0;
+      dog.level++;
+      log(`⭐ 恭喜！${dog.name || '你的狗狗'} 升級到 Lv.${dog.level}！`);
     }
-    dog.name = name;
 
-    document.getElementById("dogTitle").textContent = name;
-    document.getElementById("namingArea").style.display = "none";
-    document.getElementById("gameArea").style.display = "block";
-
-    log(`${name} 準備開始一天！`);
+    // update displays and start new daily mission (but keep same day until actionCount triggers day change)
+    updateMetaUI();
+    generateNewMission();
+  }
 }
 
-function updateUI() {
-    document.getElementById("happyValue").textContent = dog.happiness;
-    document.getElementById("hungerValue").textContent = dog.hunger;
-    document.getElementById("energyValue").textContent = dog.energy;
-
-    document.getElementById("happyBar").style.width = dog.happiness + "%";
-    document.getElementById("hungerBar").style.width = dog.hunger + "%";
-    document.getElementById("energyBar").style.width = dog.energy + "%";
-
-    checkWarnings();
-    updateMissions();
+// --- Day handling ---
+function startNewDay(){
+  day++;
+  actionCount = 0;
+  // Optionally, small natural recovery each new day
+  dog.happiness = Math.min(100, dog.happiness + 5);
+  dog.energy = Math.min(100, dog.energy + 10);
+  dog.hunger = Math.min(100, dog.hunger + 5);
+  log(`🌅 第 ${day} 天開始，任務與日常狀態已更新。`);
+  generateNewMission();
+  updateStatsUI();
+  updateMetaUI();
 }
 
-function log(text) {
-    const li = document.createElement("li");
-    li.textContent = text;
-    document.getElementById("logList").appendChild(li);
-}
+// --- Initialization & bindings ---
+el('startBtn').addEventListener('click', () => {
+  const name = el('dogNameInput').value.trim();
+  if (!name) { alert('請輸入名字！'); return; }
+  dog.name = name;
+  el('dogTitle').textContent = `${dog.name}`;
+  el('namingArea').style.display = 'none';
+  el('gameArea').style.display = 'block';
+  generateNewMission();
+  updateStatsUI();
+  updateMetaUI();
+  log(`${dog.name} 準備開始冒險！`);
+});
 
-function checkWarnings() {
-    if (dog.happiness <= 0) alert("⚠️ 狗狗太不開心了！");
-    if (dog.hunger >= 100) alert("⚠️ 狗狗太餓了！");
-    if (dog.energy <= 0) alert("⚠️ 狗狗沒有力氣了！");
-}
+el('feedBtn').addEventListener('click', feed);
+el('playBtn').addEventListener('click', play);
+el('sleepBtn').addEventListener('click', sleepDog);
 
-function feed() {
-    dog.hunger = Math.max(0, dog.hunger - 20);
-    dog.happiness = Math.min(100, dog.happiness + 10);
-    feedCount++;
-    log("你餵了狗狗！");
-    updateUI();
-}
-
-function play() {
-    dog.happiness = Math.min(100, dog.happiness + 15);
-    dog.energy = Math.max(0, dog.energy - 20);
-    playCount++;
-    log("你和狗狗玩耍！");
-    updateUI();
-}
-
-function sleepDog() {
-    dog.energy = Math.min(100, dog.energy + 40);
-    dog.hunger = Math.min(100, dog.hunger + 10);
-    log("狗狗睡了一覺。");
-    updateUI();
-}
-
-function updateMissions() {
-    if (feedCount >= 1) document.getElementById("missionFeed").textContent = "完成 ✔";
-    if (playCount >= 2) document.getElementById("missionPlay").textContent = "完成 ✔";
-}
+// initial UI state
+updateStatsUI();
+updateMissionUI();
+updateMetaUI();
 </script>
-
 </body>
 </html>
