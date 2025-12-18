@@ -2,205 +2,244 @@
 <html lang="zh-Hant">
 <head>
 <meta charset="UTF-8" />
-<title>Pawtopia</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pawtopia 電腦版（完整版）</title>
 <style>
 body{
-  font-family:system-ui;
-  background:#eef2ff;
-  margin:0;padding:20px;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+  background: linear-gradient(180deg,#ede9fe,#fdfcff);
+  margin:0; padding:24px;
 }
 .container{
-  max-width:900px;
-  margin:auto;
-  background:#fff;
-  border-radius:20px;
-  padding:20px;
-  box-shadow:0 10px 30px rgba(0,0,0,.1);
+  max-width:1100px; margin:auto; background:white;
+  padding:32px; border-radius:24px;
+  box-shadow:0 12px 30px rgba(0,0,0,.12);
 }
-.top{display:flex;justify-content:space-between;align-items:center;}
-.main{
-  display:grid;
-  grid-template-columns:300px 1fr;
-  gap:20px;
-  margin-top:16px;
-}
-img#dogImg{
-  width:100%;
-  border-radius:20px;
-  object-fit:cover;
-}
-.bar{height:12px;background:#e5e7eb;border-radius:6px;overflow:hidden}
-.fill{height:100%;background:#4ade80}
-button{
-  padding:10px;border:none;border-radius:12px;
-  background:#6366f1;color:white;cursor:pointer;
-}
-button:disabled{opacity:.4;cursor:not-allowed}
-.mission li{
-  display:flex;justify-content:space-between;
-  background:#f8fafc;
-  padding:8px 12px;
-  border-radius:10px;margin-bottom:6px;
-}
-.modal{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.4);
-  display:flex;align-items:center;justify-content:center;
-}
-.hidden{display:none}
-.modal-content{
-  background:white;
-  padding:24px;
-  border-radius:20px;
-  text-align:center;
-}
-.dogChoice{
-  width:70px;height:70px;
-  border-radius:14px;
-  object-fit:cover;
-  cursor:pointer;
-  border:3px solid transparent;
-}
-.dogChoice.selected{border-color:#6366f1}
+h1{text-align:center;margin:0 0 16px}
+.meta{display:flex;justify-content:space-between;align-items:center}
+.stats,.actions,.mission,.log{margin-top:20px}
+.bar{height:14px;background:#e5e7eb;border-radius:8px;overflow:hidden;margin-top:4px}
+.fill{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);transition:.3s}
+button{padding:10px 16px;border:none;border-radius:12px;cursor:pointer;background:#6366f1;color:#fff;font-size:15px}
+.actions{display:flex;gap:12px}
+.actions button{flex:1}
+.mission li{background:#f8fafc;padding:10px 14px;border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between}
+.log ul{max-height:160px;overflow-y:auto;padding-left:16px}
+.levelbox{background:#eef2ff;padding:6px 12px;border-radius:10px}
+.small{font-size:14px;color:#555}
+
+.dogChoice{width:120px;height:120px;border-radius:20px;object-fit:cover;cursor:pointer;border:3px solid transparent;transition:.2s}
+.dogChoice.selected{border-color:#6366f1;transform:scale(1.08)}
+
+.modal.hidden{display:none}
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999}
+.modal-content{background:white;padding:28px;border-radius:20px;max-width:420px;width:90%;text-align:center;animation:pop .25s}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+
+.day-transition{animation:flash .8s}
+@keyframes flash{from{background:#fff7ed}to{background:transparent}}
 </style>
 </head>
 <body>
 
-<div id="intro" class="modal hidden">
+<div id="introModal" class="modal hidden">
   <div class="modal-content">
-    <h2>🐶 遊戲說明</h2>
-    <p>
-      • 每天 7 個任務<br>
-      • 完成全部任務 → 新的一天<br>
-      • 快樂每天歸零
+    <h2>🐶 Pawtopia 遊戲說明</h2>
+    <p style="line-height:1.7">
+      • 每天有 <b>7 次任務</b><br>
+      • 任務包含：餵食 / 玩耍 / 睡覺<br>
+      • 完成所有任務 ➜ 進入下一天<br>
+      • 新的一天快樂值歸零<br>
     </p>
-    <button onclick="closeIntro()">開始</button>
+    <button id="introBtn">開始照顧狗狗</button>
   </div>
 </div>
 
-<div id="newDay" class="modal hidden">
+<div id="newDayModal" class="modal hidden">
   <div class="modal-content">
-    <h2 id="dayText"></h2>
-    <button onclick="closeNewDay()">繼續</button>
+    <h2 id="newDayText"></h2>
+    <button id="newDayBtn">繼續</button>
+  </div>
+</div>
+
+<div id="warnModal" class="modal hidden">
+  <div class="modal-content">
+    <h2 id="warnText"></h2>
+    <button onclick="document.getElementById('warnModal').classList.add('hidden')">知道了</button>
   </div>
 </div>
 
 <div class="container">
+<h1>Pawtopia</h1>
 
-<div id="setup">
-  <h2>取名字 & 選外觀</h2>
-  <input id="nameInput" placeholder="名字"><br><br>
-  <img src="Kiss Me!!!!.jpg" class="dogChoice">
-  <img src="下載 (2).jpg" class="dogChoice">
-  <img src="下載 (3).jpg" class="dogChoice"><br><br>
-  <button onclick="start()">開始遊戲</button>
+<div id="namingArea">
+  <h3>狗狗名字</h3>
+  <input id="dogNameInput" placeholder="輸入名字" style="width:100%;padding:10px;border-radius:10px;border:1px solid #ddd">
+
+  <h3 style="margin-top:14px">選擇外觀</h3>
+  <div style="display:flex;gap:16px;justify-content:center">
+    <img src="Kiss Me!!!!.jpg" data-dog="Kiss Me!!!!.jpg" class="dogChoice">
+    <img src="下載 (2).jpg" data-dog="下載 (2).jpg" class="dogChoice">
+    <img src="下載 (3).jpg" data-dog="下載 (3).jpg" class="dogChoice">
+  </div>
+  <button id="startBtn" style="margin-top:20px;width:100%">開始遊戲</button>
 </div>
 
-<div id="game" class="hidden">
-  <div class="top">
-    <div id="title"></div>
-    <div id="day">第 1 天</div>
+<div id="gameArea" style="display:none">
+  <div class="meta">
+    <div>
+      <div id="dogTitle" style="font-weight:600"></div>
+      <div class="small" id="dayDisplay">第 1 天</div>
+    </div>
+    <div class="levelbox">Lv <span id="dogLevel">1</span></div>
   </div>
 
-  <div class="main">
-    <img id="dogImg">
+  <!-- 桌機左右版型 -->
+  <div style="display:grid;grid-template-columns:260px 1fr;gap:20px;margin-top:16px;align-items:start">
 
+    <!-- 左：狗狗 -->
+    <div style="text-align:center">
+      <img id="mainDogImg" style="width:100%;max-width:240px;border-radius:20px">
+    </div>
+
+    <!-- 右：狀態 / 操作 / 任務 -->
     <div>
-      <div>😊 <span id="h">70</span>%<div class="bar"><div id="hb" class="fill"></div></div></div>
-      <div>🍖 <span id="f">30</span>%<div class="bar"><div id="fb" class="fill"></div></div></div>
-      <div>⚡ <span id="e">60</span>%<div class="bar"><div id="eb" class="fill"></div></div></div>
-
-      <div style="margin:12px 0">
-        <button id="feed">餵食</button>
-        <button id="play">玩耍</button>
-        <button id="sleep">睡覺</button>
+      <div class="stats">
+        <div>😊 快樂 <span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div></div>
+        <div>🍖 飽足 <span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div></div>
+        <div>⚡ 能量 <span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill" style="width:60%"></div></div></div>
       </div>
 
-      <h3>今日任務</h3>
-      <ul id="missions"></ul>
+      <div class="actions">
+        <button id="feedBtn">餵食</button>
+        <button id="playBtn">玩耍</button>
+        <button id="sleepBtn">睡覺</button>
+      </div>
+
+      <div class="mission">
+        <h3>今日任務</h3>
+        <ul id="missionList"></ul>
+        <p class="small">完成全部任務即可進入下一天</p>
+      </div>
+
+      <div class="log">
+        <h3>日誌</h3>
+        <ul id="logList"></ul>
+      </div>
     </div>
   </div>
 </div>
 </div>
+</div>
 
 <script>
-let dog={h:70,f:30,e:60,name:''};
-let day=1,locked=false,selectedImg='';
-let mission={feed:0,play:0,sleep:0,done:{feed:0,play:0,sleep:0}};
+const dog={name:'',happiness:70,hunger:30,energy:60,level:1};
+let day=1;
+let selectedDogImg='';
+let missions={};
 
-document.querySelectorAll('.dogChoice').forEach(img=>{
-  img.onclick=()=>{
-    selectedImg=img.src;
-    document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));
-    img.classList.add('selected');
+const el=id=>document.getElementById(id);
+const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li)};
+
+function clamp(){
+  dog.happiness=Math.max(0,Math.min(100,dog.happiness));
+  dog.hunger=Math.max(0,Math.min(100,dog.hunger));
+  dog.energy=Math.max(0,Math.min(100,dog.energy));
+}
+
+function updateStats(){
+  clamp();
+  happyValue.textContent=dog.happiness;
+  hungerValue.textContent=dog.hunger;
+  energyValue.textContent=dog.energy;
+  happyBar.style.width=dog.happiness+'%';
+  hungerBar.style.width=dog.hunger+'%';
+  energyBar.style.width=dog.energy+'%';
+
+  // 低狀態警告（只要 <=10 就彈窗）
+  if(dog.happiness<=10){ warn('⚠️ 狗狗快樂太低了！'); }
+  else if(dog.hunger<=10){ warn('⚠️ 狗狗快餓壞了！'); }
+  else if(dog.energy<=10){ warn('⚠️ 狗狗快沒力氣了！'); }
+}
+
+let warningShowing=false;
+function warn(t){
+  if(warningShowing) return;
+  warningShowing=true;
+  warnText.textContent=t;
+  warnModal.classList.remove('hidden');
+  // 關閉後才允許下一次警告
+  warnModal.querySelector('button').onclick=()=>{
+    warnModal.classList.add('hidden');
+    warningShowing=false;
   };
-});
-
-function start(){
-  if(!nameInput.value||!selectedImg)return alert('請完成設定');
-  dog.name=nameInput.value;
-  title.textContent=dog.name;
-  dogImg.src=selectedImg;
-  setup.classList.add('hidden');
-  game.classList.remove('hidden');
-  intro.classList.remove('hidden');
-  newMission();
-  update();
 }
 
-function closeIntro(){intro.classList.add('hidden');}
-function closeNewDay(){
-  locked=false;
-  newDay.classList.add('hidden');
-  newMission();
+function generateMissions(){
+  missions={餵食:{done:0,total:0},玩耍:{done:0,total:0},睡覺:{done:0,total:0}};
+  let remaining=7;
+  while(remaining>0){
+    const keys=Object.keys(missions);
+    const k=keys[Math.floor(Math.random()*3)];
+    if(missions[k].total>=3) continue;
+    missions[k].total++; remaining--;
+  }
+  renderMissions();
 }
 
-function newMission(){
-  mission={feed:0,play:0,sleep:0,done:{feed:0,play:0,sleep:0}};
-  let left=7;
-  ['feed','play','sleep'].forEach(t=>{
-    mission[t]=Math.max(1,Math.min(3,Math.floor(Math.random()*3)+1));
-    left-=mission[t];
-  });
-  mission.feed+=left;
-  renderMission();
-}
-
-function renderMission(){
-  missions.innerHTML='';
-  ['feed','play','sleep'].forEach(t=>{
-    let li=document.createElement('li');
-    li.innerHTML=`${t} <span>${mission.done[t]}/${mission[t]}</span>`;
-    missions.appendChild(li);
-  });
-}
-
-function act(t){
-  if(locked)return;
-  if(t==='feed'){dog.f=Math.min(100,dog.f+20);}
-  if(t==='play'){dog.h=Math.min(100,dog.h+15);dog.e=Math.max(0,dog.e-15);}
-  if(t==='sleep'){dog.e=Math.min(100,dog.e+30);}
-  mission.done[t]++;
-  update();
-  if(['feed','play','sleep'].every(x=>mission.done[x]>=mission[x])){
-    locked=true;
-    day++;
-    dog.h=0;
-    dayText.textContent=`🌅 第 ${day} 天開始`;
-    newDay.classList.remove('hidden');
-    document.getElementById('day').textContent=`第 ${day} 天`;
+function renderMissions(){
+  missionList.innerHTML='';
+  for(const k in missions){
+    const m=missions[k];
+    const li=document.createElement('li');
+    li.innerHTML=`${k} <span>${m.done}/${m.total}</span>`;
+    missionList.appendChild(li);
   }
 }
 
-function update(){
-  h.textContent=dog.h; f.textContent=dog.f; e.textContent=dog.e;
-  hb.style.width=dog.h+'%'; fb.style.width=dog.f+'%'; eb.style.width=dog.e+'%';
-  renderMission();
+function act(type){
+  if(missions[type].done>=missions[type].total) return;
+  if(type==='餵食'){dog.hunger+=20;dog.happiness+=5}
+  if(type==='玩耍'){dog.happiness+=15;dog.energy-=15}
+  if(type==='睡覺'){dog.energy+=30}
+  missions[type].done++;
+  log(type+' 完成');
+  updateStats(); renderMissions();
+  if(Object.values(missions).every(m=>m.done>=m.total)) newDay();
 }
 
-feed.onclick=()=>act('feed');
-play.onclick=()=>act('play');
-sleep.onclick=()=>act('sleep');
+function newDay(){
+  day++; dog.happiness=0;
+  newDayText.textContent=`🌅 第 ${day} 天開始！`;
+  newDayModal.classList.remove('hidden');
+  dayDisplay.textContent=`第 ${day} 天`;
+  generateMissions();
+}
+
+newDayBtn.onclick=()=>newDayModal.classList.add('hidden');
+introBtn.onclick=()=>introModal.classList.add('hidden');
+feedBtn.onclick=()=>act('餵食');
+playBtn.onclick=()=>act('玩耍');
+sleepBtn.onclick=()=>act('睡覺');
+
+document.querySelectorAll('.dogChoice').forEach(img=>{
+  img.addEventListener('click',()=>{
+    selectedDogImg=img.dataset.dog;
+    document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));
+    img.classList.add('selected');
+  });
+});
+
+startBtn.onclick=()=>{
+  const name=dogNameInput.value.trim();
+  if(!name||!selectedDogImg){alert('請輸入名字並選擇外觀');return}
+  dog.name=name; dogTitle.textContent=name;
+  mainDogImg.src=selectedDogImg;
+  namingArea.style.display='none';
+  gameArea.style.display='block';
+  introModal.classList.remove('hidden');
+  generateMissions(); updateStats(); log(name+' 開始冒險！');
+};
 </script>
 </body>
 </html>
