@@ -36,6 +36,26 @@ button{ padding:8px 16px; border:none; border-radius:8px; cursor:pointer; backgr
   </div>
 </div>
 
+<!-- 遊戲介紹彈窗 -->
+<div id="introModal" class="modal hidden">
+  <div class="modal-content">
+    <h2>🐶 歡迎來到 Pawtopia</h2>
+    <p style="line-height:1.6; text-align:left;">
+      ・每次 <b>餵食 / 玩耍 / 睡覺</b> 都算一次行動<br>
+      ・每天最多進行 <b>10 次行動</b>，之後會進入新的一天<br><br>
+      <b>🎯 每日任務</b><br>
+      ・每天需要完成共 <b>5 次</b> 餵食＋玩耍（比例隨機）<br>
+      ・完成一組任務可獲得 <b>1 XP</b><br><br>
+      <b>⭐ 升級方式</b><br>
+      ・累積 <b>3 XP</b> 即可升 1 級<br><br>
+      <b>⚠️ 注意</b><br>
+      ・快樂、飽足感、能量過低會有警告<br>
+      ・進入新的一天時，快樂值會歸零
+    </p>
+    <button id="introStartBtn">開始冒險</button>
+  </div>
+</div>
+
 <div class="container">
 <h1>Pawtopia 專屬於你的小奶狗</h1>
 
@@ -156,6 +176,12 @@ function newDay(){
 
 el('newDayBtn').onclick=()=>el('newDayModal').classList.add('hidden');
 
+el('introStartBtn').onclick=()=>{
+  el('introModal').classList.add('hidden');
+  el('gameArea').style.display='block';
+  log(`${dog.name} 開始冒險！`);
+};
+
 document.querySelectorAll('.dogChoice').forEach(img=>{
   img.onclick=()=>{
     selectedDogImg=img.dataset.dog;
@@ -167,11 +193,14 @@ document.querySelectorAll('.dogChoice').forEach(img=>{
 el('startBtn').onclick=()=>{
   const name=el('dogNameInput').value.trim();
   if(!name||!selectedDogImg){ alert('請輸入名字並選擇外觀'); return; }
-  dog.name=name; el('dogTitle').textContent=name;
+  dog.name=name;
+  el('dogTitle').textContent=name;
   el('mainDogImg').src=selectedDogImg;
   el('namingArea').style.display='none';
-  el('gameArea').style.display='block';
-  newMission(); updateUI(); log(`${name} 開始冒險！`);
+  el('introModal').classList.remove('hidden');
+  newMission();
+  updateUI();
+  log(`${name} 開始冒險！`);
 };
 
 el('feedBtn').onclick=feed;
