@@ -97,8 +97,9 @@ button{ padding:8px 16px; border:none; border-radius:8px; cursor:pointer; backgr
   <div class="mission">
     <h3>今日任務</h3>
     <ul>
-      <li>餵食 <span id="missionFeed">0/1</span></li>
-      <li>玩耍 <span id="missionPlay">0/2</span></li>
+      <li>餵食 <span id="missionFeed">0/0</span></li>
+      <li>玩耍 <span id="missionPlay">0/0</span></li>
+      <li>睡覺 <span id="missionSleep">0/0</span></li>
     </ul>
     <p>完成次數：<span id="missionTotal">0</span></p>
   </div>
@@ -113,7 +114,15 @@ button{ padding:8px 16px; border:none; border-radius:8px; cursor:pointer; backgr
 <script>
 const dog={name:'',happiness:70,hunger:30,energy:60,level:1};
 let xp=0,day=1,actionCount=0,selectedDogImg='';
-const mission={feedTarget:1,playTarget:2,feedDone:0,playDone:0,completedCount:0};
+const mission={
+  feedTarget:0,
+  playTarget:0,
+  sleepTarget:0,
+  feedDone:0,
+  playDone:0,
+  sleepDone:0,
+  completedCount:0
+};
 const el=id=>document.getElementById(id);
 const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li);};
 
@@ -129,21 +138,42 @@ function updateUI(){
   el('dayDisplay').textContent=`第 ${day} 天`;
   el('missionFeed').textContent=`${mission.feedDone}/${mission.feedTarget}`;
   el('missionPlay').textContent=`${mission.playDone}/${mission.playTarget}`;
+  el('missionSleep').textContent=`${mission.sleepDone}/${mission.sleepTarget}`;
+  el('missionTotal').textContent=mission.completedCount;
+}/3`;
+  el('dayDisplay').textContent=`第 ${day} 天`;
+  el('missionFeed').textContent=`${mission.feedDone}/${mission.feedTarget}`;
+  el('missionPlay').textContent=`${mission.playDone}/${mission.playTarget}`;
   el('missionTotal').textContent=mission.completedCount;
 }
 
 function newMission(){
-  const feed=Math.floor(Math.random()*4)+1;
-  mission.feedTarget=feed;
-  mission.playTarget=5-feed;
-  mission.feedDone=0;
-  mission.playDone=0;
+  // 一天 7 個任務，三種行為隨機分配，避免極端（每項至少 1）
+  let remaining = 7;
+  mission.feedTarget = Math.floor(Math.random()*2)+1; // 1~2
+  remaining -= mission.feedTarget;
+  mission.playTarget = Math.floor(Math.random()*2)+1; // 1~2
+  remaining -= mission.playTarget;
+  mission.sleepTarget = remaining; // 剩下給睡覺（必定 >=1）
+
+  mission.feedDone = 0;
+  mission.playDone = 0;
+  mission.sleepDone = 0;
 }
 
 function checkMission(){
-  if(mission.feedDone>=mission.feedTarget && mission.playDone>=mission.playTarget){
-    mission.completedCount++; xp++;
+  if(
+    mission.feedDone>=mission.feedTarget &&
+    mission.playDone>=mission.playTarget &&
+    mission.sleepDone>=mission.sleepTarget
+  ){
+    mission.completedCount++;
+    xp++;
+    log('🎉 今日任務完成！獲得 1 XP');
     if(xp>=3){ xp=0; dog.level++; log(`⭐ 升級到 Lv.${dog.level}`); }
+    newDay();
+  }
+}`); }
     newMission();
   }
 }
@@ -155,9 +185,30 @@ function afterAction(){
   if(actionCount>=10) newDay();
 }
 
-function feed(){ dog.hunger=Math.min(100,dog.hunger+20); dog.happiness=Math.min(100,dog.happiness+10); mission.feedDone++; log('餵食'); checkMission(); afterAction(); }
-function play(){ dog.happiness=Math.min(100,dog.happiness+15); dog.energy=Math.max(0,dog.energy-20); mission.playDone++; log('玩耍'); checkMission(); afterAction(); }
-function sleepDog(){ dog.energy=Math.min(100,dog.energy+40); dog.hunger=Math.max(0,dog.hunger-10); log('睡覺'); afterAction(); }
+function feed(){
+  dog.hunger=Math.min(100,dog.hunger+20);
+  dog.happiness=Math.min(100,dog.happiness+10);
+  mission.feedDone++;
+  log('餵食');
+  checkMission();
+  updateUI();
+}
+function play(){
+  dog.happiness=Math.min(100,dog.happiness+15);
+  dog.energy=Math.max(0,dog.energy-20);
+  mission.playDone++;
+  log('玩耍');
+  checkMission();
+  updateUI();
+}
+function sleepDog(){
+  dog.energy=Math.min(100,dog.energy+40);
+  dog.hunger=Math.max(0,dog.hunger-10);
+  mission.sleepDone++;
+  log('睡覺');
+  checkMission();
+  updateUI();
+}
 
 function checkWarnings(){
   if(dog.happiness<=10) alert('⚠️ 狗狗心情很低落！快陪牠玩耍');
