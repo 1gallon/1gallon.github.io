@@ -94,32 +94,41 @@ button{padding:10px 16px;border:none;border-radius:12px;cursor:pointer;backgroun
     <div class="levelbox">Lv <span id="dogLevel">1</span></div>
   </div>
 
-  <div class="main-layout">
-    <div class="left-panel">
-      <img id="mainDogImg">
+  <!-- 桌機左右版型 -->
+  <div style="display:grid;grid-template-columns:260px 1fr;gap:20px;margin-top:16px;align-items:start">
+
+    <!-- 左：狗狗 -->
+    <div style="text-align:center">
+      <img id="mainDogImg" style="width:100%;max-width:240px;border-radius:20px">
     </div>
-    <div class="right-panel">
+
+    <!-- 右：狀態 / 操作 / 任務 -->
+    <div>
       <div class="stats">
-    <div>😊 快樂 <span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill"></div></div></div>
-    <div>🍖 飽足 <span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill"></div></div></div>
-    <div>⚡ 能量 <span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill"></div></div></div>
-  </div>
+        <div>😊 快樂 <span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div></div>
+        <div>🍖 飽足 <span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div></div>
+        <div>⚡ 能量 <span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill" style="width:60%"></div></div></div>
+      </div>
 
-  <div class="actions">
-    <button id="feedBtn">餵食</button>
-    <button id="playBtn">玩耍</button>
-    <button id="sleepBtn">睡覺</button>
-  </div>
+      <div class="actions">
+        <button id="feedBtn">餵食</button>
+        <button id="playBtn">玩耍</button>
+        <button id="sleepBtn">睡覺</button>
+      </div>
 
-  <div class="mission">
-    <h3>今日任務</h3>
-    <ul id="missionList"></ul>
-  </div>
+      <div class="mission">
+        <h3>今日任務</h3>
+        <ul id="missionList"></ul>
+        <p class="small">完成全部任務即可進入下一天</p>
+      </div>
 
-  <div class="log">
-    <h3>日誌</h3>
-    <ul id="logList"></ul>
+      <div class="log">
+        <h3>日誌</h3>
+        <ul id="logList"></ul>
+      </div>
+    </div>
   </div>
+</div>
 </div>
 </div>
 
