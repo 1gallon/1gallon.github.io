@@ -129,13 +129,21 @@ function checkMission(){
 }
 
 function afterAction(){
-  actionCount++; updateUI();
+  actionCount++;
+  updateUI();
+  checkWarnings();
   if(actionCount>=10) newDay();
 }
 
 function feed(){ dog.hunger=Math.min(100,dog.hunger+20); dog.happiness=Math.min(100,dog.happiness+10); mission.feedDone++; log('餵食'); checkMission(); afterAction(); }
 function play(){ dog.happiness=Math.min(100,dog.happiness+15); dog.energy=Math.max(0,dog.energy-20); mission.playDone++; log('玩耍'); checkMission(); afterAction(); }
 function sleepDog(){ dog.energy=Math.min(100,dog.energy+40); dog.hunger=Math.max(0,dog.hunger-10); log('睡覺'); afterAction(); }
+
+function checkWarnings(){
+  if(dog.happiness<=10) alert('⚠️ 狗狗心情很低落！快陪牠玩耍');
+  if(dog.hunger<=10) alert('⚠️ 狗狗很餓了！需要餵食');
+  if(dog.energy<=10) alert('⚠️ 狗狗快沒力氣了！該休息了');
+}
 
 function newDay(){
   day++; actionCount=0; dog.happiness=0;
