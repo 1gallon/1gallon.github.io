@@ -147,9 +147,18 @@ function generateMissions(){
 
 function renderMissions(){
   const ul=el('missionList'); ul.innerHTML='';
+  const summary={};
   missions.forEach(m=>{
+    if(!summary[m.type]) summary[m.type]={done:0,total:0};
+    summary[m.type].total++;
+    if(m.done) summary[m.type].done++;
+  });
+  Object.keys(summary).forEach(type=>{
     const li=document.createElement('li');
-    li.innerHTML=`${m.type} <span>${m.done}/${m.target}</span>`;
+    li.innerHTML=`${type} <span>${summary[type].done}/${summary[type].total}</span>`;
+    ul.appendChild(li);
+  });
+} <span>${m.done}/${m.target}</span>`;
     ul.appendChild(li);
   });
 }
