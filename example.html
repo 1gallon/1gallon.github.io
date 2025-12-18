@@ -198,14 +198,20 @@ function renderMissions(){
 }
 
 function act(type){
-  if(missions[type].done>=missions[type].total) return;
+  // 即使任務完成，仍可進行動作
+  if(missions[type].done < missions[type].total){
+    missions[type].done++;
+  }
   if(type==='餵食'){dog.hunger+=20;dog.happiness+=5}
   if(type==='玩耍'){dog.happiness+=15;dog.energy-=15}
   if(type==='睡覺'){dog.energy+=30}
-  missions[type].done++;
   log(type+' 完成');
   updateStats(); renderMissions();
-  if(Object.values(missions).every(m=>m.done>=m.total)) newDay();
+  // 若全部任務達成，顯示提示但不鎖定行動
+  if(Object.values(missions).every(m=>m.done>=m.total)){
+    newDay();
+  }
+}
 }
 
 function newDay(){
