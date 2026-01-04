@@ -58,9 +58,9 @@ button:active{transform:scale(.97)}
       • 任務包含：餵食 / 玩耍 / 睡覺<br>
       • 完成所有任務 ➜ 進入下一天<br>
       • 一天結束後，<b>快樂值會歸零</b><br>
-      • 完成任務可獲得經驗值，累積到達滿值可升級<br>
-      • 行動需要使用道具<br>
-      • 道具可在商店購買
+      • 每完成任務中的任意一條 ➜ 獲得 1 XP<br>
+      • XP 滿後升級，升級會獲得金錢<br>
+      • 行動需要使用道具，並可在商店購買
     </p>
     <button onclick="closeIntro()">開始照顧狗狗</button>
   </div>
@@ -259,12 +259,11 @@ function act(t){
 
   renderProps();
 
-  let completedCount = Object.values(missions).reduce((acc,m)=>acc+(m.d>=m.t?1:0),0);
-  if(completedCount===3){xp++; money+=5;
-    if(xp>=xpToLevelUp){xp=0; dog.level++; money+=10; log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);}
-  }
-
+  // 每完成任務中任意一條就增加 1 XP
   if(missions[t].d<missions[t].t) missions[t].d++;
+  xp++; 
+  if(xp>=xpToLevelUp){xp=0; dog.level++; money+=10; log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);}
+  
   updateStats();
   renderMissions();
   xpDisplay.textContent=`${xp}/${xpToLevelUp}`;
