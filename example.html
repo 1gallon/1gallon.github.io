@@ -203,12 +203,31 @@ function renderMissions(){
 
 function act(t){
   if(missions[t].d<missions[t].t) missions[t].d++;
-  if(t==='餵食'){dog.hunger+=20;dog.happiness+=5}
-  if(t==='玩耍'){dog.happiness+=15;dog.energy-=15;dog.hunger-=10}
-  if(t==='睡覺'){dog.energy+=30;dog.hunger-=15}
-  updateStats();renderMissions();log(t+' 完成');
+
+  if(t==='餵食'){
+    dog.hunger+=20;
+    dog.happiness+=5;
+  }
+
+  if(t==='玩耍'){
+    dog.happiness+=15;
+    dog.energy-=15;
+    dog.hunger-=10;
+  }
+
+  if(t==='睡覺'){
+    dog.energy+=30;
+    dog.happiness-=10;
+    dog.hunger-=15;
+  }
+
+  updateStats();
+  renderMissions();
+  log(t+' 完成');
+
   if(Object.values(missions).every(m=>m.d>=m.t)) newDay();
 }
+
 
 function newDay(){
   day++;
