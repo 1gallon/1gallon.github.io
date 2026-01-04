@@ -23,13 +23,11 @@ h1{text-align:center;margin:0 0 16px}
 button{padding:10px 14px;border:none;border-radius:12px;cursor:pointer;background:#6366f1;color:#fff;font-size:15px}
 button:active{transform:scale(.97)}
 
-/* 命名 */
 #namingArea{text-align:center}
 #namingArea input{width:100%;padding:12px;border-radius:12px;border:1px solid #ddd;font-size:16px}
 .dogChoice{width:90px;height:90px;border-radius:16px;object-fit:cover;cursor:pointer;border:3px solid transparent;transition:.2s}
 .dogChoice.selected{border-color:#6366f1;transform:scale(1.08)}
 
-/* 主畫面 */
 .game-layout{display:grid;grid-template-columns:300px 1fr;gap:20px}
 @media(max-width:768px){.game-layout{grid-template-columns:1fr}}
 .dog-panel{text-align:center}
@@ -38,6 +36,7 @@ button:active{transform:scale(.97)}
 .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
 .mission li{background:#f8fafc;padding:10px 14px;border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between}
 .log ul{max-height:160px;overflow-y:auto;padding-left:16px}
+.levelbox{background:#eef2ff;padding:6px 12px;border-radius:10px;display:inline-block;margin-left:8px}
 
 /* 彈窗 */
 .modal.hidden{display:none}
@@ -56,7 +55,8 @@ button:active{transform:scale(.97)}
       • 每天有 <b>7 個任務</b><br>
       • 任務包含：餵食 / 玩耍 / 睡覺<br>
       • 完成所有任務 ➜ 進入下一天<br>
-      • 一天結束後，<b>快樂值會歸零</b>
+      • 一天結束後，<b>快樂值會歸零</b><br>
+      • 完成任務可獲得經驗值，累積到達滿值可升級
     </p>
     <button onclick="closeIntro()">開始照顧狗狗</button>
   </div>
@@ -102,6 +102,7 @@ button:active{transform:scale(.97)}
       <div id="dogTitle" style="font-weight:600"></div>
       <div class="small" id="dayDisplay">第 1 天</div>
     </div>
+    <div class="levelbox">Lv <span id="dogLevel">1</span> | XP <span id="xpDisplay">0/3</span></div>
   </div>
 
   <div class="game-layout" style="margin-top:16px">
@@ -137,7 +138,9 @@ button:active{transform:scale(.97)}
 </div>
 
 <script>
-const dog={name:'',happiness:70,hunger:30,energy:60};
+const dog={name:'',happiness:70,hunger:30,energy:60,level:1};
+let xp=0;
+const xpToLevelUp=3;
 let day=1;
 let selectedDogImg='';
 let missions={};
@@ -145,7 +148,7 @@ let missions={};
 const el=id=>document.getElementById(id);
 const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li)};
 
-// ⭐ 照片選擇（修復版：改用 JS 綁定，避免失效）
+// 照片選擇
 document.querySelectorAll('.dogChoice').forEach(img=>{
   img.addEventListener('click',()=>{
     selectedDogImg=img.dataset.dog;
@@ -165,12 +168,14 @@ function startGame(){
   generateMissions(); updateStats(); log('開始冒險！');
 }
 
+// 限制數值
 function clamp(){
   dog.happiness=Math.max(0,Math.min(100,dog.happiness));
   dog.hunger=Math.max(0,Math.min(100,dog.hunger));
   dog.energy=Math.max(0,Math.min(100,dog.energy));
 }
 
+// 更新 UI
 function updateStats(silent=false){
   clamp();
   happyValue.textContent=dog.happiness;
@@ -189,46 +194,51 @@ function warn(t){warnText.textContent=t;warnModal.classList.remove('hidden')}
 function closeWarn(){warnModal.classList.add('hidden')}
 function closeIntro(){introModal.classList.add('hidden')}
 
+// 任務
 function generateMissions(){
   missions={餵食:{d:0,t:0},玩耍:{d:0,t:0},睡覺:{d:0,t:0}};
   let r=7;
-  while(r>0){const k=Object.keys(missions)[Math.floor(Math.random()*3)];if(missions[k].t<3){missions[k].t++;r--}}
+  while(r>0){
+    const k=Object.keys(missions)[Math.floor(Math.random()*3)];
+    if(missions[k].t<3){missions[k].t++; r--;}
+  }
   renderMissions();
 }
 
 function renderMissions(){
   missionList.innerHTML='';
-  for(const k in missions){const m=missions[k];const li=document.createElement('li');li.innerHTML=`${k} <span>${m.d}/${m.t}</span>`;missionList.appendChild(li)}
+  for(const k in missions){
+    const m=missions[k];
+    const li=document.createElement('li');
+    li.innerHTML=`${k} <span>${m.d}/${m.t}</span>`;
+    missionList.appendChild(li);
+  }
 }
 
+// 行動
 function act(t){
   if(missions[t].d<missions[t].t) missions[t].d++;
 
-  if(t==='餵食'){
-    dog.hunger+=20;
-    dog.happiness+=5;
-  }
+  if(t==='餵食'){dog.hunger+=20;dog.happiness+=5}
+  if(t==='玩耍'){dog.happiness+=15;dog.energy-=15;dog.hunger-=10}
+  if(t==='睡覺'){dog.energy+=30;dog.happiness-=10;dog.hunger-=15}
 
-  if(t==='玩耍'){
-    dog.happiness+=15;
-    dog.energy-=15;
-    dog.hunger-=10;
-  }
-
-  if(t==='睡覺'){
-    dog.energy+=30;
-    dog.happiness-=10;
-    dog.hunger-=15;
+  // 完成任務獲取 XP
+  let completedCount = Object.values(missions).reduce((acc,m)=>acc+(m.d>=m.t?1:0),0);
+  if(completedCount===3){ // 所有三類任務完成才算一天
+    xp++; 
+    if(xp>=xpToLevelUp){xp=0; dog.level++; log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);}
   }
 
   updateStats();
   renderMissions();
+  xpDisplay.textContent=`${xp}/${xpToLevelUp}`;
   log(t+' 完成');
 
   if(Object.values(missions).every(m=>m.d>=m.t)) newDay();
 }
 
-
+// 新的一天
 function newDay(){
   day++;
   dayDisplay.textContent='第 '+day+' 天';
@@ -239,10 +249,9 @@ function newDay(){
 
 function closeNewDay(){
   newDayModal.classList.add('hidden');
-  dog.happiness=0;
+  dog.happiness=0; // 歸零快樂值
   updateStats(true);
 }
 </script>
 </body>
 </html>
-
