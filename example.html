@@ -39,17 +39,23 @@ button:active{transform:scale(.97)}
 .levelbox{background:#eef2ff;padding:6px 12px;border-radius:10px;display:inline-block;margin-left:8px}
 
 .prop{margin-top:8px;font-size:14px;color:#333}
-.shop{margin-top:20px;padding:16px;background:#f3f4f6;border-radius:16px;}
-.shop button{width:100%; margin:6px 0; font-size:14px; background:#10b981;}
 
+/* 商店彈窗 */
+.shop-modal.hidden{display:none}
+.shop-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999}
+.shop-content{background:white;padding:26px;border-radius:20px;max-width:400px;width:90%;text-align:center;animation:pop .25s}
+.shop-content button{width:100%; margin:6px 0; font-size:14px; background:#10b981;color:#fff;}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* 普通彈窗 */
 .modal.hidden{display:none}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999}
 .modal-content{background:white;padding:26px;border-radius:20px;max-width:420px;width:90%;text-align:center;animation:pop .25s}
-@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
 </style>
 </head>
 <body>
 
+<!-- 遊戲說明 -->
 <div id="introModal" class="modal hidden">
   <div class="modal-content">
     <h2>🐶 Pawtopia 遊戲說明</h2>
@@ -66,6 +72,7 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
+<!-- 新的一天 -->
 <div id="newDayModal" class="modal hidden">
   <div class="modal-content">
     <h2 id="newDayText"></h2>
@@ -73,10 +80,22 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
+<!-- 警告 -->
 <div id="warnModal" class="modal hidden">
   <div class="modal-content">
     <h2 id="warnText"></h2>
     <button onclick="closeWarn()">知道了</button>
+  </div>
+</div>
+
+<!-- 商店彈窗 -->
+<div id="shopModal" class="shop-modal hidden">
+  <div class="shop-content">
+    <h3>商店</h3>
+    <button onclick="buy('food',10)">購買飼料 $10</button>
+    <button onclick="buy('ball',15)">購買球 $15</button>
+    <button onclick="buy('pillow',20)">購買枕頭 $20</button>
+    <button style="background:#ef4444;" onclick="closeShop()">關閉</button>
   </div>
 </div>
 
@@ -107,6 +126,7 @@ button:active{transform:scale(.97)}
   <div class="game-layout" style="margin-top:16px">
     <div class="dog-panel">
       <img id="mainDogImg">
+      <button style="margin-top:12px;width:100%" onclick="openShop()">🛒 商店</button>
     </div>
 
     <div>
@@ -129,13 +149,6 @@ button:active{transform:scale(.97)}
       <div class="mission">
         <h3>今日任務</h3>
         <ul id="missionList"></ul>
-      </div>
-
-      <div class="shop">
-        <h3>商店</h3>
-        <button onclick="buy('food',10)">購買飼料 $10</button>
-        <button onclick="buy('ball',15)">購買球 $15</button>
-        <button onclick="buy('pillow',20)">購買枕頭 $20</button>
       </div>
 
       <div class="log">
@@ -211,6 +224,9 @@ function warn(t){warnText.textContent=t;warnModal.classList.remove('hidden')}
 function closeWarn(){warnModal.classList.add('hidden')}
 function closeIntro(){introModal.classList.add('hidden')}
 
+function openShop(){shopModal.classList.remove('hidden')}
+function closeShop(){shopModal.classList.add('hidden')}
+
 function buy(item,cost){
   if(money<cost){alert('金錢不足！'); return;}
   props[item]++;
@@ -256,11 +272,10 @@ function act(t){
 
   if(missions[t].d<missions[t].t){
     missions[t].d++;
-    // 只有完成整條任務才增加XP
     if(missions[t].d>=missions[t].t){
       xp++;
       log(`🎉 完成 ${t} 任務！獲得 1 XP`);
-      if(xp>=xpToLevelUp){
+      if(xp>=3){
         xp=0; dog.level++; money+=10;
         log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);
       }
@@ -269,7 +284,7 @@ function act(t){
 
   updateStats();
   renderMissions();
-  xpDisplay.textContent=`${xp}/${xpToLevelUp}`;
+  xpDisplay.textContent=`${xp}/3`;
   updateMoney();
   log(t+' 完成');
 
@@ -292,3 +307,4 @@ function closeNewDay(){
 </script>
 </body>
 </html>
+
