@@ -39,8 +39,9 @@ button:active{transform:scale(.97)}
 .levelbox{background:#eef2ff;padding:6px 12px;border-radius:10px;display:inline-block;margin-left:8px}
 
 .prop{margin-top:8px;font-size:14px;color:#333}
-.shop{margin-top:12px;display:flex;gap:10px;flex-wrap:wrap}
-.shop button{flex:1; font-size:14px; background:#10b981;}
+.shop{margin-top:20px;padding:16px;background:#f3f4f6;border-radius:16px;}
+.shop button{width:100%; margin:6px 0; font-size:14px; background:#10b981;}
+
 .modal.hidden{display:none}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999}
 .modal-content{background:white;padding:26px;border-radius:20px;max-width:420px;width:90%;text-align:center;animation:pop .25s}
@@ -125,15 +126,16 @@ button:active{transform:scale(.97)}
         <button onclick="act('睡覺')">睡覺</button>
       </div>
 
-      <div class="shop">
-        <button onclick="buy('food',10)">購買飼料 $10</button>
-        <button onclick="buy('ball',15)">購買球 $15</button>
-        <button onclick="buy('pillow',20)">購買枕頭 $20</button>
-      </div>
-
       <div class="mission">
         <h3>今日任務</h3>
         <ul id="missionList"></ul>
+      </div>
+
+      <div class="shop">
+        <h3>商店</h3>
+        <button onclick="buy('food',10)">購買飼料 $10</button>
+        <button onclick="buy('ball',15)">購買球 $15</button>
+        <button onclick="buy('pillow',20)">購買枕頭 $20</button>
       </div>
 
       <div class="log">
@@ -252,10 +254,9 @@ function act(t){
 
   renderProps();
 
-  // 任務進度
   if(missions[t].d<missions[t].t){
     missions[t].d++;
-    // 只有當完成整條任務才增加XP
+    // 只有完成整條任務才增加XP
     if(missions[t].d>=missions[t].t){
       xp++;
       log(`🎉 完成 ${t} 任務！獲得 1 XP`);
