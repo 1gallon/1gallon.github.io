@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Pawtopia（手機 / 電腦通用版）</title>
+<title>Pawtopia</title>
 <style>
 body{
   font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
@@ -16,40 +16,30 @@ body{
   box-shadow:0 12px 30px rgba(0,0,0,.12);
 }
 h1{text-align:center;margin:0 0 16px}
+.small{font-size:14px;color:#555}
 
-/* ===== 通用 ===== */
 .bar{height:14px;background:#e5e7eb;border-radius:8px;overflow:hidden;margin-top:4px}
 .fill{height:100%;background:linear-gradient(90deg,#22c55e,#4ade80);transition:.3s}
 button{padding:10px 14px;border:none;border-radius:12px;cursor:pointer;background:#6366f1;color:#fff;font-size:15px}
 button:active{transform:scale(.97)}
-.small{font-size:14px;color:#555}
 
-/* ===== 命名頁 ===== */
+/* 命名 */
 #namingArea{text-align:center}
 #namingArea input{width:100%;padding:12px;border-radius:12px;border:1px solid #ddd;font-size:16px}
 .dogChoice{width:90px;height:90px;border-radius:16px;object-fit:cover;cursor:pointer;border:3px solid transparent;transition:.2s}
 .dogChoice.selected{border-color:#6366f1;transform:scale(1.08)}
 
-/* ===== 主遊戲版面 ===== */
-.game-layout{
-  display:grid;
-  grid-template-columns:320px 1fr;
-  gap:20px;
-}
-@media (max-width:768px){
-  .game-layout{grid-template-columns:1fr}
-}
-
+/* 主畫面 */
+.game-layout{display:grid;grid-template-columns:300px 1fr;gap:20px}
+@media(max-width:768px){.game-layout{grid-template-columns:1fr}}
 .dog-panel{text-align:center}
-.dog-panel img{width:100%;max-width:260px;border-radius:20px}
-
+.dog-panel img{width:100%;max-width:240px;border-radius:20px}
 .stats div{margin-bottom:10px}
 .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
-
 .mission li{background:#f8fafc;padding:10px 14px;border-radius:12px;margin-bottom:8px;display:flex;justify-content:space-between}
 .log ul{max-height:160px;overflow-y:auto;padding-left:16px}
 
-/* ===== 彈窗 ===== */
+/* 彈窗 */
 .modal.hidden{display:none}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999}
 .modal-content{background:white;padding:26px;border-radius:20px;max-width:420px;width:90%;text-align:center;animation:pop .25s}
@@ -66,7 +56,7 @@ button:active{transform:scale(.97)}
       • 每天有 <b>7 個任務</b><br>
       • 任務包含：餵食 / 玩耍 / 睡覺<br>
       • 完成所有任務 ➜ 進入下一天<br>
-      • <b>一天結束後，快樂值會歸零</b>
+      • 一天結束後，<b>快樂值會歸零</b>
     </p>
     <button onclick="closeIntro()">開始照顧狗狗</button>
   </div>
@@ -98,9 +88,9 @@ button:active{transform:scale(.97)}
 
   <h3 style="margin-top:16px">選擇外觀</h3>
   <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
-    <img src="Kiss Me!!!!.jpg" data-dog="Kiss Me!!!!.jpg" class="dogChoice" onclick="selectDog(this)">
-    <img src="下載 (2).jpg" data-dog="下載 (2).jpg" class="dogChoice" onclick="selectDog(this)">
-    <img src="下載 (3).jpg" data-dog="下載 (3).jpg" class="dogChoice" onclick="selectDog(this)">
+    <img src="Kiss Me!!!!.jpg" class="dogChoice" data-dog="Kiss Me!!!!.jpg">
+    <img src="下載 (2).jpg" class="dogChoice" data-dog="下載 (2).jpg">
+    <img src="下載 (3).jpg" class="dogChoice" data-dog="下載 (3).jpg">
   </div>
   <button style="margin-top:20px;width:100%" onclick="startGame()">開始遊戲</button>
 </div>
@@ -155,11 +145,14 @@ let missions={};
 const el=id=>document.getElementById(id);
 const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li)};
 
-function selectDog(img){
-  selectedDogImg=img.dataset.dog;
-  document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));
-  img.classList.add('selected');
-}
+// ⭐ 照片選擇（修復版：改用 JS 綁定，避免失效）
+document.querySelectorAll('.dogChoice').forEach(img=>{
+  img.addEventListener('click',()=>{
+    selectedDogImg=img.dataset.dog;
+    document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));
+    img.classList.add('selected');
+  });
+});
 
 function startGame(){
   if(!dogNameInput.value||!selectedDogImg){alert('請輸入名字並選擇外觀');return}
@@ -211,8 +204,8 @@ function renderMissions(){
 function act(t){
   if(missions[t].d<missions[t].t) missions[t].d++;
   if(t==='餵食'){dog.hunger+=20;dog.happiness+=5}
-  if(t==='玩耍'){dog.happiness+=15;dog.energy-=15}
-  if(t==='睡覺'){dog.energy+=30}
+  if(t==='玩耍'){dog.happiness+=15;dog.energy-=15;dog.hunger-=10}
+  if(t==='睡覺'){dog.energy+=30;dog.hunger-=15}
   updateStats();renderMissions();log(t+' 完成');
   if(Object.values(missions).every(m=>m.d>=m.t)) newDay();
 }
@@ -222,18 +215,15 @@ function newDay(){
   dayDisplay.textContent='第 '+day+' 天';
   newDayText.textContent='🌅 第 '+day+' 天開始！';
   newDayModal.classList.remove('hidden');
-  log('🌅 進入第 '+day+' 天');
   generateMissions();
 }
 
 function closeNewDay(){
   newDayModal.classList.add('hidden');
-  // 顯示天數後再歸零快樂值，且不觸發警告
   dog.happiness=0;
   updateStats(true);
-},300);
-  generateMissions();
 }
 </script>
 </body>
 </html>
+
