@@ -49,7 +49,6 @@ button:active{transform:scale(.97)}
 </head>
 <body>
 
-<!-- 遊戲說明 -->
 <div id="introModal" class="modal hidden">
   <div class="modal-content">
     <h2>🐶 Pawtopia 遊戲說明</h2>
@@ -58,7 +57,7 @@ button:active{transform:scale(.97)}
       • 任務包含：餵食 / 玩耍 / 睡覺<br>
       • 完成所有任務 ➜ 進入下一天<br>
       • 一天結束後，<b>快樂值會歸零</b><br>
-      • 每完成任務中的任意一條 ➜ 獲得 1 XP<br>
+      • 完成任務中的整條（如 3/3） ➜ 獲得 1 XP<br>
       • XP 滿後升級，升級會獲得金錢<br>
       • 行動需要使用道具，並可在商店購買
     </p>
@@ -66,7 +65,6 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
-<!-- 新的一天 -->
 <div id="newDayModal" class="modal hidden">
   <div class="modal-content">
     <h2 id="newDayText"></h2>
@@ -74,7 +72,6 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
-<!-- 警告 -->
 <div id="warnModal" class="modal hidden">
   <div class="modal-content">
     <h2 id="warnText"></h2>
@@ -161,7 +158,6 @@ let props={food:5,ball:5,pillow:5};
 const el=id=>document.getElementById(id);
 const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li)};
 
-// 選照片
 document.querySelectorAll('.dogChoice').forEach(img=>{
   img.addEventListener('click',()=>{
     selectedDogImg=img.dataset.dog;
@@ -213,7 +209,6 @@ function warn(t){warnText.textContent=t;warnModal.classList.remove('hidden')}
 function closeWarn(){warnModal.classList.add('hidden')}
 function closeIntro(){introModal.classList.add('hidden')}
 
-// 購買
 function buy(item,cost){
   if(money<cost){alert('金錢不足！'); return;}
   props[item]++;
@@ -222,7 +217,6 @@ function buy(item,cost){
   log(`購買了 1 個 ${item}`);
 }
 
-// 任務
 function generateMissions(){
   missions={餵食:{d:0,t:0},玩耍:{d:0,t:0},睡覺:{d:0,t:0}};
   let r=7;
@@ -243,7 +237,6 @@ function renderMissions(){
   }
 }
 
-// 行動
 function act(t){
   if(t==='餵食' && props.food<=0){alert('沒有飼料了！'); return;}
   if(t==='玩耍' && props.ball<=0){alert('沒有球了！'); return;}
@@ -259,11 +252,20 @@ function act(t){
 
   renderProps();
 
-  // 每完成任務中任意一條就增加 1 XP
-  if(missions[t].d<missions[t].t) missions[t].d++;
-  xp++; 
-  if(xp>=xpToLevelUp){xp=0; dog.level++; money+=10; log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);}
-  
+  // 任務進度
+  if(missions[t].d<missions[t].t){
+    missions[t].d++;
+    // 只有當完成整條任務才增加XP
+    if(missions[t].d>=missions[t].t){
+      xp++;
+      log(`🎉 完成 ${t} 任務！獲得 1 XP`);
+      if(xp>=xpToLevelUp){
+        xp=0; dog.level++; money+=10;
+        log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);
+      }
+    }
+  }
+
   updateStats();
   renderMissions();
   xpDisplay.textContent=`${xp}/${xpToLevelUp}`;
@@ -273,7 +275,6 @@ function act(t){
   if(Object.values(missions).every(m=>m.d>=m.t)) newDay();
 }
 
-// 新的一天
 function newDay(){
   day++;
   dayDisplay.textContent='第 '+day+' 天';
@@ -290,4 +291,3 @@ function closeNewDay(){
 </script>
 </body>
 </html>
-
