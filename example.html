@@ -38,6 +38,9 @@ button:active{transform:scale(.97)}
 .log ul{max-height:160px;overflow-y:auto;padding-left:16px}
 .levelbox{background:#eef2ff;padding:6px 12px;border-radius:10px;display:inline-block;margin-left:8px}
 
+/* 道具顯示 */
+.prop{margin-top:8px;font-size:14px;color:#333}
+
 /* 彈窗 */
 .modal.hidden{display:none}
 .modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999}
@@ -56,7 +59,8 @@ button:active{transform:scale(.97)}
       • 任務包含：餵食 / 玩耍 / 睡覺<br>
       • 完成所有任務 ➜ 進入下一天<br>
       • 一天結束後，<b>快樂值會歸零</b><br>
-      • 完成任務可獲得經驗值，累積到達滿值可升級
+      • 完成任務可獲得經驗值，累積到達滿值可升級<br>
+      • 行動需要使用道具，開始時每種道具 5 個
     </p>
     <button onclick="closeIntro()">開始照顧狗狗</button>
   </div>
@@ -81,11 +85,9 @@ button:active{transform:scale(.97)}
 <div class="container">
 <h1>Pawtopia</h1>
 
-<!-- 命名 / 外觀 -->
 <div id="namingArea">
   <h3>狗狗名字</h3>
   <input id="dogNameInput" placeholder="輸入名字">
-
   <h3 style="margin-top:16px">選擇外觀</h3>
   <div style="display:flex;gap:16px;justify-content:center;flex-wrap:wrap">
     <img src="Kiss Me!!!!.jpg" class="dogChoice" data-dog="Kiss Me!!!!.jpg">
@@ -95,14 +97,13 @@ button:active{transform:scale(.97)}
   <button style="margin-top:20px;width:100%" onclick="startGame()">開始遊戲</button>
 </div>
 
-<!-- 主遊戲 -->
 <div id="gameArea" style="display:none">
   <div style="display:flex;justify-content:space-between;align-items:center">
     <div>
       <div id="dogTitle" style="font-weight:600"></div>
       <div class="small" id="dayDisplay">第 1 天</div>
     </div>
-    <div class="levelbox">Lv <span id="dogLevel">1</span> | XP <span id="xpDisplay">0/3</span></div>
+    <div class="levelbox">Lv <span id="dogLevel">1</span> | XP <span id="xpDisplay">0/3</span> | $<span id="moneyDisplay">0</span></div>
   </div>
 
   <div class="game-layout" style="margin-top:16px">
@@ -115,6 +116,10 @@ button:active{transform:scale(.97)}
         <div>😊 快樂 <span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div></div>
         <div>🍖 飽足 <span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div></div>
         <div>⚡ 能量 <span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill" style="width:60%"></div></div></div>
+      </div>
+
+      <div class="prop">
+        🥫 飼料: <span id="foodCount">5</span> | 🏀 球: <span id="ballCount">5</span> | 🛏️ 枕頭: <span id="pillowCount">5</span>
       </div>
 
       <div class="actions">
@@ -142,13 +147,15 @@ const dog={name:'',happiness:70,hunger:30,energy:60,level:1};
 let xp=0;
 const xpToLevelUp=3;
 let day=1;
+let money=0;
 let selectedDogImg='';
 let missions={};
+let props={food:5,ball:5,pillow:5};
 
 const el=id=>document.getElementById(id);
 const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li)};
 
-// 照片選擇
+// 選照片
 document.querySelectorAll('.dogChoice').forEach(img=>{
   img.addEventListener('click',()=>{
     selectedDogImg=img.dataset.dog;
@@ -165,17 +172,15 @@ function startGame(){
   namingArea.style.display='none';
   gameArea.style.display='block';
   introModal.classList.remove('hidden');
-  generateMissions(); updateStats(); log('開始冒險！');
+  generateMissions(); updateStats(); renderProps(); log('開始冒險！');
 }
 
-// 限制數值
 function clamp(){
   dog.happiness=Math.max(0,Math.min(100,dog.happiness));
   dog.hunger=Math.max(0,Math.min(100,dog.hunger));
   dog.energy=Math.max(0,Math.min(100,dog.energy));
 }
 
-// 更新 UI
 function updateStats(silent=false){
   clamp();
   happyValue.textContent=dog.happiness;
@@ -188,6 +193,12 @@ function updateStats(silent=false){
   if(dog.happiness<=10) warn('⚠️ 狗狗快樂太低了！');
   else if(dog.hunger<=10) warn('⚠️ 狗狗太餓了！');
   else if(dog.energy<=10) warn('⚠️ 狗狗沒有力氣了！');
+}
+
+function renderProps(){
+  foodCount.textContent=props.food;
+  ballCount.textContent=props.ball;
+  pillowCount.textContent=props.pillow;
 }
 
 function warn(t){warnText.textContent=t;warnModal.classList.remove('hidden')}
@@ -217,22 +228,34 @@ function renderMissions(){
 
 // 行動
 function act(t){
-  if(missions[t].d<missions[t].t) missions[t].d++;
+  // 道具檢查
+  if(t==='餵食' && props.food<=0){alert('沒有飼料了！'); return;}
+  if(t==='玩耍' && props.ball<=0){alert('沒有球了！'); return;}
+  if(t==='睡覺' && props.pillow<=0){alert('沒有枕頭了！'); return;}
 
+  // 消耗道具
+  if(t==='餵食') props.food--;
+  if(t==='玩耍') props.ball--;
+  if(t==='睡覺') props.pillow--;
+
+  // 行動效果
   if(t==='餵食'){dog.hunger+=20;dog.happiness+=5}
   if(t==='玩耍'){dog.happiness+=15;dog.energy-=15;dog.hunger-=10}
   if(t==='睡覺'){dog.energy+=30;dog.happiness-=10;dog.hunger-=15}
 
-  // 完成任務獲取 XP
+  renderProps();
+
+  // XP 獲取
   let completedCount = Object.values(missions).reduce((acc,m)=>acc+(m.d>=m.t?1:0),0);
-  if(completedCount===3){ // 所有三類任務完成才算一天
-    xp++; 
-    if(xp>=xpToLevelUp){xp=0; dog.level++; log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);}
+  if(completedCount===3){xp++; money+=5; // 升級給錢
+    if(xp>=xpToLevelUp){xp=0; dog.level++; money+=10; log(`⭐ 恭喜！${dog.name} 升級到 Lv.${dog.level}！`);}
   }
 
+  if(missions[t].d<missions[t].t) missions[t].d++;
   updateStats();
   renderMissions();
   xpDisplay.textContent=`${xp}/${xpToLevelUp}`;
+  moneyDisplay.textContent=money;
   log(t+' 完成');
 
   if(Object.values(missions).every(m=>m.d>=m.t)) newDay();
@@ -255,3 +278,4 @@ function closeNewDay(){
 </script>
 </body>
 </html>
+
