@@ -116,9 +116,9 @@ button:active{transform:scale(.97)}
 <div id="shopModal" class="shop-modal hidden">
   <div class="shop-content">
     <h3>商店</h3>
-    <button onclick="buy('food',5)">購買飼料 $10</button>
-    <button onclick="buy('ball',5)">購買球 $15</button>
-    <button onclick="buy('pillow',10)">購買枕頭 $20</button>
+    <button onclick="buy('food',10)">購買飼料 $10</button>
+    <button onclick="buy('ball',15)">購買球 $15</button>
+    <button onclick="buy('pillow',15)">購買枕頭 $15</button>
     <button style="background:#ef4444" onclick="closeShop()">關閉</button>
   </div>
 </div>
@@ -219,7 +219,7 @@ function clamp(){
   dog.energy=Math.max(0,Math.min(100,dog.energy));
 }
 
-function updateStats(){
+function updateStats(silent=false){
   clamp();
   happyValue.textContent=dog.happiness;
   hungerValue.textContent=dog.hunger;
@@ -228,9 +228,11 @@ function updateStats(){
   hungerBar.style.width=dog.hunger+'%';
   energyBar.style.width=dog.energy+'%';
 
-  if(dog.happiness<=10) warn('⚠️ 狗狗快樂太低了！');
-  else if(dog.hunger<=10) warn('⚠️ 狗狗太餓了！');
-  else if(dog.energy<=10) warn('⚠️ 狗狗沒有力氣了！');
+  if(!silent){
+    if(dog.happiness<=10) warn('⚠️ 狗狗快樂太低了！');
+    else if(dog.hunger<=10) warn('⚠️ 狗狗太餓了！');
+    else if(dog.energy<=10) warn('⚠️ 狗狗沒有力氣了！');
+  }
 }
 
 function renderProps(){foodCount.textContent=props.food;ballCount.textContent=props.ball;pillowCount.textContent=props.pillow}
@@ -241,9 +243,7 @@ function openShop(){shopModal.classList.remove('hidden')}
 function closeShop(){shopModal.classList.add('hidden')}
 function closePoor(){if(fish<20)return; poorModal.classList.add('hidden')}
 function closeLevel5(){level5Modal.classList.add('hidden')}
-
 function exitGame(){window.location.reload()}
-
 function warn(t){warnText.textContent=t;warnModal.classList.remove('hidden')}
 function closeWarn(){warnModal.classList.add('hidden')}
 
@@ -321,7 +321,7 @@ function newDay(){
 
 function closeNewDay(){
   newDayModal.classList.add('hidden');
-  dog.happiness=0; updateStats();
+  dog.happiness=0; updateStats(true); // silent true, 不觸發警告
 }
 </script>
 </body>
