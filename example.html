@@ -33,7 +33,7 @@ button:active{transform:scale(.97)}
 @media(max-width:768px){.game-layout{grid-template-columns:1fr}}
 
 .dog-panel{text-align:center}
-.dog-panel img{width:100%;max-width:240px;border-radius:20px}
+.dog-panel img{width:100%;max-width:220px;border-radius:20px}
 
 .stats div{margin-bottom:10px}
 .actions{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:12px 0}
@@ -41,7 +41,6 @@ button:active{transform:scale(.97)}
 .log ul{max-height:160px;overflow-y:auto;padding-left:16px}
 
 .levelbox{background:#eef2ff;padding:6px 12px;border-radius:10px}
-
 .prop{margin-top:8px;font-size:14px}
 
 .modal.hidden{display:none}
@@ -52,21 +51,23 @@ button:active{transform:scale(.97)}
 .shop-modal{position:fixed;inset:0;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;z-index:999}
 .shop-content{background:white;padding:26px;border-radius:20px;max-width:400px;width:90%;text-align:center}
 .shop-content button{width:100%;margin:6px 0;background:#10b981}
+
+#woodfish{font-size:64px;cursor:pointer;user-select:none}
 </style>
 </head>
-
 <body>
 
 <!-- 遊戲說明 -->
 <div id="introModal" class="modal hidden">
   <div class="modal-content">
     <h2>🐶 Pawtopia 遊戲說明</h2>
-    <p>
+    <p style="line-height:1.7">
       • 每天 7 個任務<br>
-      • 任務整條完成才有 XP<br>
-      • XP 滿 3 升級並獲得金錢<br>
-      • 行動需要道具（可在商店購買）<br>
-      • 一天結束後快樂值歸零
+      • 任務整條完成才會獲得 XP<br>
+      • XP 滿 3 會升級並獲得金錢<br>
+      • 行動需要道具，可在商店購買<br>
+      • 一天結束後快樂值會歸零<br>
+      • 破產時，似乎有神祕方式可以獲得賺錢的機會…
     </p>
     <button onclick="closeIntro()">開始遊戲</button>
   </div>
@@ -80,21 +81,24 @@ button:active{transform:scale(.97)}
   </div>
 </div>
 
-<!-- 警告 -->
-<div id="warnModal" class="modal hidden">
+<!-- 破產木魚 -->
+<div id="poorModal" class="modal hidden" style="z-index:1200">
   <div class="modal-content">
-    <h2 id="warnText"></h2>
-    <button onclick="closeWarn()">知道了</button>
+    <h2>你窮窮的 😭</h2>
+    <p>你窮窮的，快幫自己和可憐的加侖積點功德！</p>
+    <div id="woodfish" onclick="knockFish()">🔔</div>
+    <p id="fishText">功德：<span id="fishCount">0</span>/20</p>
+    <button onclick="closePoor()">離開</button>
   </div>
 </div>
 
 <!-- 商店 -->
 <div id="shopModal" class="shop-modal hidden">
   <div class="shop-content">
-    <h3>🛒 商店</h3>
-    <button onclick="buy('food',10)">飼料 $10</button>
-    <button onclick="buy('ball',15)">球 $15</button>
-    <button onclick="buy('pillow',20)">枕頭 $20</button>
+    <h3>商店</h3>
+    <button onclick="buy('food',10)">購買飼料 $10</button>
+    <button onclick="buy('ball',15)">購買球 $15</button>
+    <button onclick="buy('pillow',20)">購買枕頭 $20</button>
     <button style="background:#ef4444" onclick="closeShop()">關閉</button>
   </div>
 </div>
@@ -104,7 +108,7 @@ button:active{transform:scale(.97)}
 
 <div id="namingArea">
   <input id="dogNameInput" placeholder="狗狗名字">
-  <div style="display:flex;gap:16px;justify-content:center;margin:16px 0">
+  <div style="display:flex;gap:16px;justify-content:center;margin:16px 0;flex-wrap:wrap">
     <img src="Kiss Me!!!!.jpg" class="dogChoice" data-dog="Kiss Me!!!!.jpg">
     <img src="下載 (2).jpg" class="dogChoice" data-dog="下載 (2).jpg">
     <img src="下載 (3).jpg" class="dogChoice" data-dog="下載 (3).jpg">
@@ -113,81 +117,80 @@ button:active{transform:scale(.97)}
 </div>
 
 <div id="gameArea" style="display:none">
-
-<div style="display:flex;justify-content:space-between">
-  <div>
-    <div id="dogTitle"></div>
-    <div id="dayDisplay">第 1 天</div>
-  </div>
-  <div class="levelbox">
-    Lv <span id="dogLevel">1</span> |
-    XP <span id="xpDisplay">0/3</span> |
-    $<span id="moneyDisplay">50</span>
-  </div>
-</div>
-
-<div class="game-layout">
-  <div class="dog-panel">
-    <img id="mainDogImg">
-    <button style="margin-top:10px;width:100%" onclick="openShop()">🛒 商店</button>
+  <div style="display:flex;justify-content:space-between">
+    <div>
+      <div id="dogTitle"></div>
+      <div id="dayDisplay">第 1 天</div>
+    </div>
+    <div class="levelbox">Lv <span id="dogLevel">1</span> | XP <span id="xpDisplay">0/3</span> | $<span id="moneyDisplay">50</span></div>
   </div>
 
-  <div>
-    <div class="stats">
-      <div>😊 <span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill"></div></div></div>
-      <div>🍖 <span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill"></div></div></div>
-      <div>⚡ <span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill"></div></div></div>
+  <div class="game-layout">
+    <div class="dog-panel">
+      <img id="mainDogImg">
+      <button style="margin-top:10px;width:100%" onclick="openShop()">🛒 商店</button>
     </div>
 
-    <div class="prop">
-      🥫 <span id="foodCount">5</span> |
-      🏀 <span id="ballCount">5</span> |
-      🛏️ <span id="pillowCount">5</span>
+    <div>
+      <div class="stats">
+        <div>😊 快樂 <span id="happyValue">70</span>%<div class="bar"><div id="happyBar" class="fill" style="width:70%"></div></div></div>
+        <div>🍖 飽足 <span id="hungerValue">30</span>%<div class="bar"><div id="hungerBar" class="fill" style="width:30%"></div></div></div>
+        <div>⚡ 能量 <span id="energyValue">60</span>%<div class="bar"><div id="energyBar" class="fill" style="width:60%"></div></div></div>
+      </div>
+
+      <div class="prop">🥫 <span id="foodCount">5</span> | 🏀 <span id="ballCount">5</span> | 🛏️ <span id="pillowCount">5</span></div>
+
+      <div class="actions">
+        <button onclick="act('餵食')">餵食</button>
+        <button onclick="act('玩耍')">玩耍</button>
+        <button onclick="act('睡覺')">睡覺</button>
+      </div>
+
+      <h3>今日任務</h3>
+      <ul id="missionList"></ul>
+      <h3>日誌</h3>
+      <ul id="logList"></ul>
     </div>
-
-    <div class="actions">
-      <button onclick="act('餵食')">餵食</button>
-      <button onclick="act('玩耍')">玩耍</button>
-      <button onclick="act('睡覺')">睡覺</button>
-    </div>
-
-    <h3>今日任務</h3>
-    <ul id="missionList"></ul>
-
-    <h3>日誌</h3>
-    <ul id="logList"></ul>
   </div>
-</div>
 </div>
 </div>
 
 <script>
 const dog={name:'',happiness:70,hunger:30,energy:60,level:1};
-let xp=0, day=1, money=50;
+let xp=0, day=1, money=50, fish=0;
 let props={food:5,ball:5,pillow:5};
 let missions={}, selectedDogImg='';
 
 const el=id=>document.getElementById(id);
-const log=t=>{const li=document.createElement('li');li.textContent=t;logList.prepend(li)}
+const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li)};
 
 document.querySelectorAll('.dogChoice').forEach(img=>{
-  img.onclick=()=>{selectedDogImg=img.dataset.dog;document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));img.classList.add('selected')}
+  img.onclick=()=>{
+    selectedDogImg=img.dataset.dog;
+    document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));
+    img.classList.add('selected');
+  };
 });
 
-function updateLevel(){dogLevel.textContent=dog.level}
-
 function startGame(){
-  if(!dogNameInput.value||!selectedDogImg) return alert('請輸入名字並選擇外觀');
+  if(!dogNameInput.value||!selectedDogImg){alert('請輸入名字並選擇外觀');return}
   dog.name=dogNameInput.value;
   dogTitle.textContent=dog.name;
   mainDogImg.src=selectedDogImg;
   namingArea.style.display='none';
   gameArea.style.display='block';
   introModal.classList.remove('hidden');
-  generateMissions(); updateStats(); updateLevel();
+  generateMissions(); updateStats(true); renderProps(); updateMoney(); log('開始冒險！');
+}
+
+function clamp(){
+  dog.happiness=Math.max(0,Math.min(100,dog.happiness));
+  dog.hunger=Math.max(0,Math.min(100,dog.hunger));
+  dog.energy=Math.max(0,Math.min(100,dog.energy));
 }
 
 function updateStats(){
+  clamp();
   happyValue.textContent=dog.happiness;
   hungerValue.textContent=dog.hunger;
   energyValue.textContent=dog.energy;
@@ -196,49 +199,81 @@ function updateStats(){
   energyBar.style.width=dog.energy+'%';
 }
 
+function renderProps(){foodCount.textContent=props.food;ballCount.textContent=props.ball;pillowCount.textContent=props.pillow}
+function updateMoney(){moneyDisplay.textContent=money}
+
+function closeIntro(){introModal.classList.add('hidden')}
+function openShop(){shopModal.classList.remove('hidden')}
+function closeShop(){shopModal.classList.add('hidden')}
+function closePoor(){poorModal.classList.add('hidden')}
+
+function buy(item,cost){
+  if(money<cost){fish=0;fishCount.textContent=0;fishText.textContent='功德：0/20';poorModal.classList.remove('hidden');return}
+  props[item]++; money-=cost; renderProps(); updateMoney(); log('購買道具');
+}
+
+function knockFish(){
+  fish++; fishCount.textContent=fish;
+  if(fish>=20){
+    money+=50; updateMoney();
+    fishText.textContent='功德圓滿！大方的ㄐㄧㄚㄌㄨㄣˊ決定分你一點錢';
+    setTimeout(()=>{ closePoor(); },1200);
+  }
+}
+
 function generateMissions(){
   missions={餵食:{d:0,t:0},玩耍:{d:0,t:0},睡覺:{d:0,t:0}};
   let r=7;
-  while(r>0){let k=Object.keys(missions)[Math.random()*3|0];if(missions[k].t<3){missions[k].t++;r--}}
+  while(r>0){
+    const k=Object.keys(missions)[Math.floor(Math.random()*3)];
+    if(missions[k].t<3){missions[k].t++;r--}
+  }
   renderMissions();
 }
 
 function renderMissions(){
   missionList.innerHTML='';
-  for(let k in missions){
-    let m=missions[k];
-    missionList.innerHTML+=`<li>${k}<span>${m.d}/${m.t}</span></li>`;
+  for(const k in missions){
+    const m=missions[k];
+    const li=document.createElement('li');
+    li.innerHTML=`${k} <span>${m.d}/${m.t}</span>`;
+    missionList.appendChild(li);
   }
 }
 
 function act(t){
-  if(t==='餵食'&&props.food--<=0)return alert('沒飼料');
-  if(t==='玩耍'&&props.ball--<=0)return alert('沒球');
-  if(t==='睡覺'&&props.pillow--<=0)return alert('沒枕頭');
+  if((t==='餵食'&&props.food<=0)||(t==='玩耍'&&props.ball<=0)||(t==='睡覺'&&props.pillow<=0)){alert('道具不足');return}
 
-  if(t==='餵食'){dog.hunger+=20;dog.happiness+=5}
-  if(t==='玩耍'){dog.happiness+=15;dog.energy-=15;dog.hunger-=10}
-  if(t==='睡覺'){dog.energy+=30;dog.happiness-=10;dog.hunger-=15}
+  if(t==='餵食'){props.food--;dog.hunger+=20;dog.happiness+=5}
+  if(t==='玩耍'){props.ball--;dog.happiness+=15;dog.energy-=15;dog.hunger-=10}
+  if(t==='睡覺'){props.pillow--;dog.energy+=30;dog.happiness-=10;dog.hunger-=15}
 
   if(missions[t].d<missions[t].t){
     missions[t].d++;
     if(missions[t].d===missions[t].t){
-      xp++; xpDisplay.textContent=`${xp}/3`;
-      if(xp>=3){xp=0;dog.level++;money+=10;updateLevel();log('⭐ 升級！')}
+      xp++; log('完成任務 +1 XP');
+      if(xp>=3){
+        xp=0; dog.level++; money+=10; dogLevel.textContent=dog.level; updateMoney();
+      }
     }
   }
-  updateStats(); renderMissions();
+
+  updateStats(); renderProps(); renderMissions(); xpDisplay.textContent=`${xp}/3`; log(t+' 行動');
+  if(Object.values(missions).every(m=>m.d>=m.t)) newDay();
 }
 
-function openShop(){shopModal.classList.remove('hidden')}
-function closeShop(){shopModal.classList.add('hidden')}
-function buy(i,c){if(money<c)return alert('錢不夠');props[i]++;money-=c;moneyDisplay.textContent=money}
+function newDay(){
+  day++; dayDisplay.textContent='第 '+day+' 天';
+  newDayText.textContent='🌅 第 '+day+' 天開始！';
+  newDayModal.classList.remove('hidden');
+  generateMissions();
+}
 
-function closeIntro(){introModal.classList.add('hidden')}
-function closeWarn(){warnModal.classList.add('hidden')}
-function closeNewDay(){newDayModal.classList.add('hidden');dog.happiness=0;updateStats()}
+function closeNewDay(){
+  newDayModal.classList.add('hidden');
+  dog.happiness=0; updateStats();
+}
 </script>
-
 </body>
 </html>
 
