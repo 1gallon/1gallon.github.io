@@ -108,9 +108,32 @@ button:active{transform:scale(.97)}
     <p>你窮窮的，快幫自己和可憐的加侖積點功德！</p>
     <div id="woodfish" onclick="knockFish()">🔔</div>
     <p id="fishText">功德：<span id="fishCount">0</span>/20</p>
-    <button onclick="closePoor()">離開</button>
+    <button id="closePoorBtn" onclick="closePoor()">離開</button>
   </div>
 </div>
+
+<script>
+let woodfishLocked = false; // 鎖定關閉按鈕
+let fish = 0;
+
+function knockFish(){
+  fish++; 
+  fishCount.textContent = fish;
+  if(fish>=20){
+    money +=50;
+    updateMoney();
+    fishText.textContent='功德圓滿！大方的ㄐㄧㄚㄌㄨㄣˊ決定分你一點錢';
+    woodfishLocked = false;
+    setTimeout(()=>{ poorModal.classList.add('hidden'); },1200);
+  }
+}
+
+// 關閉木魚彈窗按鈕，受限制
+function closePoor(){
+  if(woodfishLocked) return;
+  poorModal.classList.add('hidden');
+}
+</script>
 
 <!-- 商店 -->
 <div id="shopModal" class="shop-modal hidden">
