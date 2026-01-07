@@ -75,7 +75,7 @@ button:active{transform:scale(.97)}
     <h2>🐶 Pawtopia 遊戲說明</h2>
     <p style="line-height:1.7">
       • 每天 7 個任務<br>
-      • 任務完成後獲得 XP<br>
+      • 任務完成整條才獲得 XP<br>
       • XP 滿 3 會升級並獲得金錢<br>
       • 行動需要道具，可在商店購買<br>
       • 一天結束後快樂值會歸零<br>
@@ -106,34 +106,11 @@ button:active{transform:scale(.97)}
   <div class="modal-content">
     <h2>你窮窮的 😭</h2>
     <p>你窮窮的，快幫自己和可憐的加侖積點功德！</p>
-    <div id="woodfish" onclick="knockFish()">🔔</div>
+    <div id="woodfish">🔔</div>
     <p id="fishText">功德：<span id="fishCount">0</span>/20</p>
-    <button id="closePoorBtn" onclick="closePoor()">離開</button>
+    <button id="closePoorBtn">離開</button>
   </div>
 </div>
-
-<script>
-let woodfishLocked = false; // 鎖定關閉按鈕
-let fish = 0;
-
-function knockFish(){
-  fish++; 
-  fishCount.textContent = fish;
-  if(fish>=20){
-    money +=50;
-    updateMoney();
-    fishText.textContent='功德圓滿！大方的ㄐㄧㄚㄌㄨㄣˊ決定分你一點錢';
-    woodfishLocked = false;
-    setTimeout(()=>{ poorModal.classList.add('hidden'); },1200);
-  }
-}
-
-// 關閉木魚彈窗按鈕，受限制
-function closePoor(){
-  if(woodfishLocked) return;
-  poorModal.classList.add('hidden');
-}
-</script>
 
 <!-- 商店 -->
 <div id="shopModal" class="shop-modal hidden">
@@ -161,7 +138,7 @@ function closePoor(){
 
 <div id="namingArea">
   <input id="dogNameInput" placeholder="你的奶狗叫什麼名字？">
-  <div style="display:flex;gap:16px;justify-content:center;margin:16px 0;flex-wrap:wrap">
+  <div id="dogChoices" style="display:flex;gap:16px;justify-content:center;margin:16px 0;flex-wrap:wrap">
     <img src="Kiss Me!!!!.jpg" class="dogChoice" data-dog="Kiss Me!!!!.jpg">
     <img src="下載 (2).jpg" class="dogChoice" data-dog="下載 (2).jpg">
     <img src="下載 (3).jpg" class="dogChoice" data-dog="下載 (3).jpg">
@@ -217,12 +194,14 @@ let missions={}, selectedDogImg='',woodfishLocked=false;
 const el=id=>document.getElementById(id);
 const log=m=>{const li=document.createElement('li');li.textContent=m;el('logList').prepend(li)};
 
+function selectDog(img){
+  selectedDogImg=img.dataset.dog;
+  document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));
+  img.classList.add('selected');
+}
+
 document.querySelectorAll('.dogChoice').forEach(img=>{
-  img.onclick=()=>{
-    selectedDogImg=img.dataset.dog;
-    document.querySelectorAll('.dogChoice').forEach(i=>i.classList.remove('selected'));
-    img.classList.add('selected');
-  };
+  img.addEventListener('click',()=>selectDog(img));
 });
 
 function startGame(){
@@ -288,7 +267,8 @@ function knockFish(){
   }
 }
 
-document.querySelector('#poorModal button').onclick=()=>{ if(!woodfishLocked) closePoor() };
+document.querySelector('#poorModal #woodfish').addEventListener('click',knockFish);
+document.querySelector('#closePoorBtn').addEventListener('click',closePoor);
 
 function generateMissions(){
   missions={餵食:{d:0,t:0},玩耍:{d:0,t:0},睡覺:{d:0,t:0}};
